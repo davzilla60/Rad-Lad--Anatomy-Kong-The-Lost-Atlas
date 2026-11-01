@@ -1,7 +1,7 @@
 """Build index.html / anatomy-kong.embed.html from game.html + assets/.
 
-Everything in the game is drawn in code, so the build only inlines the
-Rad-Lad logo for now. Real images for the anatomy challenges go here later.
+The world art is drawn in code. The build inlines the Rad-Lad logo and the
+sprites/portraits cut from the concept sheet (run tools/cut_concept.py first).
 
 Usage:  python build.py   -> index.html + anatomy-kong.embed.html (self-contained)
 """
@@ -19,6 +19,8 @@ def data_uri(p):
 
 def main():
     assets = {"logo_mark": data_uri(A / "logo_mark.png")}
+    for f in sorted((A / "sprites").glob("*.png")):
+        assets[f.stem] = data_uri(f)
     src = (ROOT / "game.html").read_text(encoding="utf-8")
     out = src.replace("/*__ASSETS__*/{}", json.dumps(assets))
     for n in ("index.html", "anatomy-kong.embed.html"):

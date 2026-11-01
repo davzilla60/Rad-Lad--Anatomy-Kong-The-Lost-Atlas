@@ -12,6 +12,8 @@ A Rad-Lad retro jungle platformer that teaches anatomy. Dr Dissection has stolen
 Arrows/WASD run and climb, Z/Space jump, X/Shift roll, Up reads a plinth, Esc skips the intro. Touch: d-pad plus JUMP and ROLL buttons.
 
 ## Build
-`game.html` is the source. `python build.py` writes the self-contained `index.html` and `anatomy-kong.embed.html` (for Wix).
+`game.html` is the source. `python tools/cut_concept.py` cuts the hero sprites and dialogue portraits out of `assets/concept/character_sheet.png` into `assets/sprites/`; `python build.py` then writes the self-contained `index.html` and `anatomy-kong.embed.html` (for Wix).
 
-All characters, levels and pixel art are original and drawn in code. Concept art is in `assets/concept/`.
+The game draws a 384x224 world at 2x resolution, so art can carry the finer detail of the concept sheet.
+
+The hero sprites and dialogue portraits come from Rad-Lad's concept sheet; the world, enemies, props and cutscene sets are original art drawn in code.
