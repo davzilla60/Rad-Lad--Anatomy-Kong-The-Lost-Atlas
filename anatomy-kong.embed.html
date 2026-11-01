@@ -116,7 +116,7 @@ html,body{background:#0d0a14;height:100%}
 #ak .btn[hidden]{display:none}
 #ak .end h2{font-family:var(--pix);font-weight:700;color:var(--gold);font-size:max(22px,calc(var(--u)*13));line-height:1}
 #ak .end .sub{font-family:var(--pix);font-weight:600;font-size:max(12px,calc(var(--u)*5));color:var(--leaf);margin:calc(var(--u)*2) 0 calc(var(--u)*5);letter-spacing:1px}
-#ak .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*2.5);margin-bottom:calc(var(--u)*5)}
+#ak .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*2.5);margin-bottom:calc(var(--u)*5)}
 #ak .stats div{background:#221834;border:1px solid var(--frame);border-radius:6px;padding:calc(var(--u)*3);font-family:var(--pix);text-align:center}
 #ak .stats span{display:block;font-size:max(10px,calc(var(--u)*4));color:var(--dim);margin-bottom:calc(var(--u)*1.5);letter-spacing:1px}
 #ak .stats b{font-weight:700;font-size:max(16px,calc(var(--u)*9))}
@@ -255,7 +255,7 @@ html,body{background:#0d0a14;height:100%}
         <div class="t-sub">THE LOST ATLAS</div>
         <div class="t-world">WORLD 1 &middot; BONE ISLAND</div>
         <div class="t-btns"><button class="btn pri" id="tStart">Start adventure</button></div>
-        <p class="t-keys" id="tKeys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>Z</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd>/<kbd>Shift</kbd> roll<br><kbd>&uarr;</kbd> <kbd>&darr;</kbd> climb vines &middot; <kbd>&uarr;</kbd> read a plinth</p>
+        <p class="t-keys" id="tKeys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>Z</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd>/<kbd>Shift</kbd> roll<br><kbd>&uarr;</kbd> <kbd>&darr;</kbd> climb vines &middot; <kbd>&uarr;</kbd> read a plinth<br>Bump into an enemy and it quizzes you: answer right to defeat it.</p>
       </div></div>
     </div>
 
@@ -596,6 +596,12 @@ function markPick(){
     R(6, 6, 4, 4, "#ffcf3a");
   });
 }
+function markCorrect(){
+  return bake(16, 16, function(R){
+    R(2, 2, 12, 12, "#2a6a3a"); R(3, 3, 10, 10, "#3fa85a"); R(3, 3, 10, 1, "#7ae08a");
+    R.line([[4, 8], [7, 11], [12, 4]], "#ffffff"); R.line([[4, 9], [7, 12], [12, 5]], "#ffffff");
+  });
+}
 function markAtlas(){
   return bake(16, 16, function(R){
     R(1, 2, 14, 12, "#7a3a20"); R(2, 3, 12, 10, "#f3e2b3"); R(7, 3, 2, 10, "#c8b07a"); R(1, 13, 14, 1, "#4a2010");
@@ -626,7 +632,7 @@ async function buildSprites(){
   SPR.atlas = atlasSpr(); SPR.lieut = LIEUT.map(function(l, i){ return lieutSpr(i); });
   SPR.crab = [crabSpr(0), crabSpr(1)]; SPR.bat = [batSpr(0), batSpr(1)]; SPR.spiky = [spikySpr(0), spikySpr(1)];
   SPR.token = tokenSpr(); SPR.page = pageSpr(); SPR.lbOff = lightboxSpr(false); SPR.lbOn = lightboxSpr(true); SPR.plinth = plinthSpr(); SPR.plank = plankSpr();
-  SPR.mPick = markPick(); SPR.mAtlas = markAtlas();
+  SPR.mPick = markPick(); SPR.mAtlas = markAtlas(); SPR.mCorrect = markCorrect();
 }
 
 /* ======================================================================
@@ -1048,7 +1054,7 @@ function afterMove(dt){
       e.x += e.dir * 30 * dt; if (e.x < e.x0 + 8){ e.x = e.x0 + 8; e.dir = 1; } if (e.x > e.x1 + 8){ e.x = e.x1 + 8; e.dir = -1; }
       if (e.home0 === undefined) e.home0 = e.y; e.y = e.home0 + Math.sin(e.t * 2.4) * 12;
     }
-    if (P.climb && e.kind !== "tok" && e.kind !== "page" && e.kind !== "cp" && e.kind !== "plinth"){ if (overlap(e, 12, 9)) hurt(e.x); return; }
+    if (P.climb && e.kind !== "tok" && e.kind !== "page" && e.kind !== "cp" && e.kind !== "plinth"){ if (overlap(e, 12, 9)) challenge(e); return; }
     switch (e.kind){
       case "tok":
         if (overlap(e, 10, 10)){ e.alive = false; S.tokens++; SFX.play("token"); spark(e.x, e.y - 5); hud(); }
@@ -1063,11 +1069,7 @@ function afterMove(dt){
       default: // crab, bat, spiky
         var ew = 14, eh = e.kind === "bat" ? 10 : e.kind === "spiky" ? 12 : 10;
         if (!overlap(e, ew, eh)) break;
-        var stomp = P.vy > 30 && P.prevBottom <= e.y - eh + 6;
-        if (P.roll > 0 && e.kind !== "spiky"){ kill(e, P.face); }
-        else if (stomp && e.kind !== "spiky"){ kill(e, 0); P.vy = held("jump") ? -330 : -220; P.y = e.y - eh; }
-        else if (stomp){ P.vy = -240; hurt(e.x); }
-        else hurt(e.x);
+        challenge(e);
     }
   });
   var pl = S.mode === "play" && nearPlinth(); hint(pl && S.bridgeN === 0 && S.bridgeT < 0 ? (TOUCH ? "Press ▲ to read the plinth" : "Press ↑ to read the plinth") : "");
@@ -1078,8 +1080,8 @@ function kill(e, push){
   e.alive = false; e.dead = true; e.dvy = -200; e.dvx = push * 80; SFX.play("stomp");
   for (var i = 0; i < 5; i++) puff(e.x, e.y - 6, BONE);
 }
-function hurt(fromX){
-  if (P.inv > 0 || S.mode !== "play") return;
+function hurt(fromX, force){
+  if (!force && (P.inv > 0 || S.mode !== "play")) return;
   S.hearts--; hud(true);
   if (S.hearts <= 0){ knockOut(); return; }
   SFX.play("hurt"); P.inv = 1.4; P.roll = 0; P.climb = false; P.grabCD = .4;
@@ -1109,7 +1111,7 @@ function nearPlinth(){
 }
 function tryPlinth(){
   var e = nearPlinth(); if (!e || S.bridgeN > 0 || S.bridgeT >= 0 || S.mode !== "play") return;
-  openQuiz(e.puzzle);
+  openQuiz(PUZZLES[e.puzzle], { kind:"bridge" });
 }
 function exitStep(dt){
   S.exitT += dt;
@@ -1370,6 +1372,52 @@ var PUZZLES = {
     caption:"Atlas plate: adult skeleton, anterior view. Concept drawing; a real radiograph will replace it."
   }
 };
+// Bone Island enemy questions: bones, joints and landmarks. "highlight" shows the
+// skeleton plate with that bone lit; otherwise the enemy itself is shown.
+var QBANK = [
+  { prompt:"Which bone is glowing?", highlight:"humerus", options:["Humerus", "Femur", "Radius", "Clavicle"], answer:"Humerus",
+    explain:"The humerus is the upper arm bone, from the shoulder to the elbow." },
+  { prompt:"Which bone is glowing?", highlight:"tibia", options:["Tibia", "Fibula", "Femur", "Ulna"], answer:"Tibia",
+    explain:"The tibia (shin bone) is the larger, weight-bearing bone of the lower leg, on the medial side." },
+  { prompt:"Which bone is glowing?", highlight:"fibula", options:["Fibula", "Tibia", "Radius", "Ulna"], answer:"Fibula",
+    explain:"The fibula is the slender bone on the lateral side of the lower leg. It carries little of the body's weight." },
+  { prompt:"Which bone is glowing?", highlight:"clavicle", options:["Clavicle", "Scapula", "Sternum", "Humerus"], answer:"Clavicle",
+    explain:"The clavicle (collarbone) runs from the sternum to the shoulder, where it meets the acromion of the scapula." },
+  { prompt:"Which bone is glowing?", highlight:"patella", options:["Patella", "Tibia", "Calcaneus", "Talus"], answer:"Patella",
+    explain:"The patella (kneecap) sits in the quadriceps tendon. It is the largest sesamoid bone in the body." },
+  { prompt:"Which forearm bone is glowing?", highlight:"radius", options:["Radius", "Ulna", "Humerus", "Fibula"], answer:"Radius",
+    explain:"The radius is on the lateral (thumb) side of the forearm. The ulna is on the medial (little finger) side." },
+  { prompt:"The first cervical vertebra holds up the skull and shares its name with our lost book. What is it called?", options:["Atlas", "Axis", "Sacrum", "Coccyx"], answer:"Atlas",
+    explain:"C1 is the atlas, named after the Titan who held up the heavens. C2, below it, is the axis." },
+  { prompt:"How many cervical vertebrae are in the neck?", options:["7", "5", "12", "8"], answer:"7",
+    explain:"There are 7 cervical vertebrae (C1 to C7), then 12 thoracic and 5 lumbar." },
+  { prompt:"How many carpal bones are in each wrist?", options:["8", "5", "7", "14"], answer:"8",
+    explain:"Eight carpal bones sit in two rows of four. The scaphoid is the one most often fractured." },
+  { prompt:"The calcaneus is better known as which bone?", options:["The heel bone", "The kneecap", "The ankle bone", "The big toe"], answer:"The heel bone",
+    explain:"The calcaneus is the heel bone, the largest of the tarsal bones. The Achilles tendon inserts on it." },
+  { prompt:"The medial malleolus, the bump on the inside of the ankle, belongs to which bone?", options:["Tibia", "Fibula", "Talus", "Calcaneus"], answer:"Tibia",
+    explain:"The medial malleolus is part of the tibia. The lateral malleolus, on the outside, is the fibula." },
+  { prompt:"What type of joint is the hip?", options:["Ball and socket", "Hinge", "Pivot", "Saddle"], answer:"Ball and socket",
+    explain:"The femoral head (the ball) sits in the acetabulum of the pelvis (the socket), so the hip moves in all directions." },
+  { prompt:"What type of joint is the elbow between the humerus and ulna?", options:["Hinge", "Ball and socket", "Saddle", "Plane"], answer:"Hinge",
+    explain:"The humero-ulnar joint is a hinge: it allows flexion and extension." },
+  { prompt:"The point of your elbow is the olecranon. Which bone is it part of?", options:["Ulna", "Radius", "Humerus", "Scapula"], answer:"Ulna",
+    explain:"The olecranon is the top end of the ulna. It fits into the olecranon fossa of the humerus when the arm is straight." },
+  { prompt:"How many pairs of ribs does a typical adult have?", options:["12", "10", "11", "14"], answer:"12",
+    explain:"There are 12 pairs. Pairs 1 to 7 are true ribs, 8 to 10 are false ribs, and 11 and 12 are floating ribs." },
+  { prompt:"Which wrist bone is most often fractured after a fall onto an outstretched hand?", options:["Scaphoid", "Lunate", "Pisiform", "Hamate"], answer:"Scaphoid",
+    explain:"The scaphoid. Its fractures can be hard to see on the first X-ray, so dedicated scaphoid views are taken." },
+  { prompt:"Roughly how many bones are in the adult human skeleton?", options:["206", "180", "250", "300"], answer:"206",
+    explain:"About 206. Babies start with closer to 270, and many of them fuse as we grow." },
+  { prompt:"The acetabulum is the socket of which joint?", options:["Hip", "Shoulder", "Knee", "Ankle"], answer:"Hip",
+    explain:"The acetabulum is the cup-shaped socket of the pelvis that holds the femoral head." }
+];
+// who's asking: each enemy has a name and a line for the card
+var FOES = {
+  crab:{ name:"Knuckle Crab", line:"Clack clack! Answer me this, or get pinched!" },
+  bat:{ name:"Vertebat", line:"Skreee! Prove you know your bones!" },
+  spiky:{ name:"Osteophyte", line:"Grrr. Think you're sharp? Let's see." }
+};
 function drawSkeleton(cx, hl){
   var c = cx.canvas; cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height);
   cx.fillStyle = "#0b1520"; cx.fillRect(0, 0, c.width, c.height); cx.scale(2, 2);
@@ -1398,29 +1446,56 @@ function drawSkeleton(cx, hl){
   both("tibia", 3.6, 51, 132, 51, 157); both("fibula", 1.8, 46, 133, 46, 156);
   both("foot", 2.4, 50, 160, 43, 164);
 }
-var QZ = null;
-function openQuiz(id){
-  var q = PUZZLES[id]; QZ = { q:q, tries:0, done:false };
+// the enemy card shown when a question has no skeleton plate
+function drawFoe(cx, kind){
+  var c = cx.canvas; cx.setTransform(1, 0, 0, 1, 0, 0); cx.imageSmoothingEnabled = false;
+  cx.fillStyle = "#140f1e"; cx.fillRect(0, 0, c.width, c.height);
+  var gr = cx.createRadialGradient(c.width / 2, c.height * .55, 10, c.width / 2, c.height * .55, c.width * .7);
+  gr.addColorStop(0, "rgba(138,90,208,.45)"); gr.addColorStop(1, "rgba(20,15,30,0)"); cx.fillStyle = gr; cx.fillRect(0, 0, c.width, c.height);
+  var img = SPR[kind][0], sc = Math.floor(Math.min(c.width * .8 / img.width, c.height * .5 / img.height));
+  cx.fillStyle = "rgba(0,0,0,.35)"; cx.beginPath(); cx.ellipse(c.width / 2, c.height * .55 + img.height * sc / 2, img.width * sc * .4, 8, 0, 0, 7); cx.fill();
+  cx.drawImage(img, Math.round((c.width - img.width * sc) / 2), Math.round(c.height * .55 - img.height * sc / 2), img.width * sc, img.height * sc);
+}
+var QZ = null, BAG = [];
+function nextQuestion(){
+  if (!BAG.length) BAG = shuffle(QBANK);
+  return BAG.pop();
+}
+// ctx.kind: "bridge" (retry until right) or "foe" (one answer: right defeats it, wrong costs a heart)
+function openQuiz(q, ctx){
+  QZ = { q:q, ctx:ctx, tries:0, done:false, right:false };
   S.mode = "quiz"; hint(""); KEY = {}; PAD = {};
-  $("qKick").textContent = q.kick; $("qPrompt").textContent = q.prompt; $("qCap").textContent = q.caption; $("qFb").innerHTML = ""; $("qGo").hidden = true;
-  drawSkeleton($("qCv").getContext("2d"), q.highlight);
+  var foe = ctx.kind === "foe" ? FOES[ctx.e.kind] : null;
+  $("qKick").textContent = foe ? foe.name.toUpperCase() + " CHALLENGE" : q.kick;
+  $("qPrompt").textContent = q.prompt;
+  $("qCap").textContent = q.highlight ? (q.caption || "Atlas plate: adult skeleton, anterior view. Concept drawing.") : foe ? "“" + foe.line + "”" : "";
+  $("qFb").innerHTML = ""; $("qGo").hidden = true;
+  if (q.highlight) drawSkeleton($("qCv").getContext("2d"), q.highlight); else drawFoe($("qCv").getContext("2d"), ctx.e.kind);
   var box = $("qOpts"); box.innerHTML = "";
   shuffle(q.options).forEach(function(o, i){
-    var b = document.createElement("button"); b.innerHTML = "<kbd>" + (i + 1) + "</kbd>" + o; b.dataset.o = o;
+    var b = document.createElement("button"); b.innerHTML = "<kbd>" + (i + 1) + "</kbd>" + esc(o); b.dataset.o = o;
     b.onclick = function(){ answer(b); }; box.appendChild(b);
   });
   $("quiz").classList.add("on"); SFX.play("select");
   setTimeout(function(){ box.firstChild.focus({ preventScroll:true }); }, 30);
 }
-function esc(t){ return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function esc(t){ return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 function answer(b){
   if (!QZ || QZ.done || b.disabled) return;
-  var q = QZ.q, o = b.dataset.o; QZ.tries++;
+  var q = QZ.q, o = b.dataset.o, foe = QZ.ctx.kind === "foe"; QZ.tries++;
+  var all = Array.prototype.slice.call($("qOpts").children);
   if (o === q.answer){
-    QZ.done = true; b.classList.add("right"); SFX.play("right");
-    Array.prototype.forEach.call($("qOpts").children, function(x){ if (x !== b) x.disabled = true; });
-    $("qFb").innerHTML = '<b class="y">Correct: ' + esc(q.answer) + "</b><ul>" + q.explain.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
+    QZ.done = QZ.right = true; b.classList.add("right"); SFX.play("right");
+    all.forEach(function(x){ if (x !== b) x.disabled = true; });
+    var ex = Array.isArray(q.explain) ? q.explain : [q.explain];
+    $("qFb").innerHTML = '<b class="y">Correct: ' + esc(q.answer) + "</b><ul>" + ex.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
+    $("qGo").innerHTML = foe ? "Defeat the " + esc(FOES[QZ.ctx.e.kind].name) + " &#9654;" : "Rebuild the bridge &#9654;";
     $("qGo").hidden = false; $("qGo").focus({ preventScroll:true });
+  } else if (foe){
+    QZ.done = true; SFX.play("wrong"); S.wrong++;
+    all.forEach(function(x){ x.disabled = true; if (x.dataset.o === q.answer) x.classList.add("right"); });
+    $("qFb").innerHTML = '<b class="n">Not quite: it’s ' + esc(q.answer) + ".</b> " + esc(q.explain) + " You lose a heart.";
+    $("qGo").innerHTML = "Back off &#9654;"; $("qGo").hidden = false; $("qGo").focus({ preventScroll:true });
   } else {
     b.disabled = true; SFX.play("wrong");
     $("qFb").innerHTML = '<b class="n">Not quite.</b> The ' + esc(o.toLowerCase()) + " is " + esc(q.where[o]) + ". " + esc(q.hint);
@@ -1428,10 +1503,22 @@ function answer(b){
 }
 function closeQuiz(){
   if (!QZ || !QZ.done) return;
-  $("quiz").classList.remove("on"); var first = QZ.tries === 1; QZ = null;
-  S.mode = "play"; S.bridgeT = 0; S.bridgeN = 0;
-  if (first) unlock("pick");
-  say_live("The bone bridge is rebuilt");
+  $("quiz").classList.remove("on"); var z = QZ; QZ = null; S.mode = "play";
+  if (z.ctx.kind === "bridge"){
+    S.bridgeT = 0; S.bridgeN = 0;
+    if (z.tries === 1) unlock("pick");
+    say_live("The bone bridge is rebuilt");
+    return;
+  }
+  var e = z.ctx.e;
+  S.asked++;
+  if (z.right){ S.beaten++; kill(e, P.x < e.x ? 1 : -1); P.inv = .5; say_live(FOES[e.kind].name + " defeated"); }
+  else hurt(e.x, true);
+}
+function challenge(e){
+  if (P.inv > 0 || S.mode !== "play") return;
+  P.roll = 0; P.vx = 0; if (!P.climb) P.vy = Math.min(P.vy, 0);
+  openQuiz(nextQuestion(), { kind:"foe", e:e });
 }
 $("qGo").onclick = closeQuiz;
 
@@ -1440,7 +1527,8 @@ $("qGo").onclick = closeQuiz;
    ====================================================================== */
 var MARKERS = [
   { id:"pick", title:"A Bone to Pick", sub:"Rebuilt the bone bridge on your first answer", img:"mPick" },
-  { id:"nobones", title:"No Bones About It", sub:"Cleared Bone Island: Welcome to the Jungle", img:"mAtlas" }
+  { id:"nobones", title:"No Bones About It", sub:"Cleared Bone Island: Welcome to the Jungle", img:"mAtlas" },
+  { id:"correct", title:"Anatomically Correct", sub:"Cleared 1-1 without a wrong answer to an enemy", img:"mCorrect" }
 ];
 var MARKIMG = {};
 function hud(pop){
@@ -1474,7 +1562,7 @@ function banner(t, s){ $("bannerT").textContent = t; $("bannerS").textContent = 
    FLOW
    ====================================================================== */
 function newRun(){
-  buildLevel(); S.tokens = 0; S.pages = {}; S.hearts = 3; S.kos = 0; S.time = 0; S.cp = null; S.bridgeN = 0; S.bridgeT = -1; S.parts = [];
+  buildLevel(); S.tokens = 0; S.pages = {}; S.hearts = 3; S.kos = 0; S.asked = 0; S.beaten = 0; S.wrong = 0; S.time = 0; S.cp = null; S.bridgeN = 0; S.bridgeT = -1; S.parts = [];
   resetPlayer(LV.start); S.cam = 0; hud();
 }
 async function startGame(){
@@ -1493,10 +1581,10 @@ async function startGame(){
 async function finishLevel(){
   SFX.play("clear");
   await after(1.4);
-  unlock("nobones");
+  unlock("nobones"); if (!S.wrong && S.asked) unlock("correct");
   var t = Math.round(S.time), mm = Math.floor(t / 60), ss = ("0" + t % 60).slice(-2);
   $("eSub").textContent = "BONE ISLAND · 1-1 WELCOME TO THE JUNGLE";
-  $("eStats").innerHTML = [["TOKENS", S.tokens + "/" + LV.totalTok], ["ATLAS PAGES", Object.keys(S.pages).length + "/2"], ["KNOCK-OUTS", S.kos], ["TIME", mm + ":" + ss]]
+  $("eStats").innerHTML = [["TOKENS", S.tokens + "/" + LV.totalTok], ["ATLAS PAGES", Object.keys(S.pages).length + "/2"], ["ENEMY QUIZZES", S.beaten + "/" + S.asked], ["KNOCK-OUTS", S.kos], ["TIME", mm + ":" + ss]]
     .map(function(s){ return "<div><span>" + s[0] + "</span><b>" + s[1] + "</b></div>"; }).join("");
   $("eMarks").innerHTML = MARKERS.map(function(m){ return '<div class="' + (S.unlocked[m.id] ? "on" : "") + '"><img alt="" src="' + MARKIMG[m.id] + '">' + m.title + "</div>"; }).join("");
   S.mode = "end"; $("end").classList.add("on");

@@ -6,10 +6,11 @@ A Rad-Lad retro jungle platformer that teaches anatomy. Dr Dissection has stolen
 - Intro cutscene: the theft at the Temple of Anatomia, the pages scattering, and the chapters handed to the lieutenants (skippable).
 - World 1, Bone Island, Level 1-1 "Welcome to the Jungle": run, jump, roll attack, vine climbing, golden bone tokens, 2 Atlas pages, a lightbox checkpoint and an exit hut.
 - Anatomy challenge: name the glowing bone at the plinth to rebuild the bone bridge.
-- Markers: "A Bone to Pick" (bridge on your first answer) and "No Bones About It" (clear 1-1).
+- Enemy quizzes: bump into an enemy and it asks a Bone Island anatomy question (`QBANK` in game.html). Right defeats it; wrong costs a heart, shows the answer, and the enemy stays.
+- Markers: "A Bone to Pick" (bridge on your first answer) "No Bones About It" (clear 1-1) and "Anatomically Correct" (clear 1-1 with no wrong enemy answers).
 
 ## Controls
-Arrows/WASD run and climb, Z/Space jump, X/Shift roll, Up reads a plinth, Esc skips the intro. Touch: d-pad plus JUMP and ROLL buttons.
+Arrows/WASD run and climb, Z/Space jump, X/Shift roll (for speed; it no longer defeats enemies), Up reads a plinth, Esc skips the intro. Touch: d-pad plus JUMP and ROLL buttons.
 
 ## Build
 `game.html` is the source. `python tools/cut_concept.py` cuts the hero sprites and dialogue portraits out of `assets/concept/character_sheet.png` into `assets/sprites/`; `python build.py` then writes the self-contained `index.html` and `anatomy-kong.embed.html` (for Wix).
