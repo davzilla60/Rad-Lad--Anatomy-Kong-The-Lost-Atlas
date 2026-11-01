@@ -14,7 +14,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 SHEET = ROOT / "assets" / "concept" / "character_sheet.png"
 OUT = ROOT / "assets" / "sprites"
-HERO_H = 54            # standing height in render pixels (render scale 2 -> 27 world px)
+HERO_H = 81            # standing height in render pixels (render scale 3 -> 27 world px)
 BG_TOL = 18            # colour distance still counted as background
 
 # pose -> crop box on the sheet (x0, y0, x1, y1)
@@ -24,6 +24,14 @@ POSES = {
     "jump":  (1095, 745, 1225, 905),
     "climb": (1245, 745, 1345, 905),
     "roll":  (1355, 790, 1515, 905),
+}
+# close-ups for the opening cinematic, kept at the sheet's own resolution
+CLOSE = {
+    "close_doc_calc":   (36, 750, 182, 905),
+    "close_doc_amused": (218, 750, 364, 905),
+    "close_doc_frust":  (399, 750, 545, 905),
+    "close_doc_victor": (580, 750, 726, 905),
+    "close_hero":       (845, 72, 1115, 342),
 }
 # portraits: crop box, output size
 PORTS = {
@@ -94,6 +102,9 @@ def main():
         p = im.crop(b).resize((size, size), Image.LANCZOS)
         p.save(OUT / f"port_{k}.png")
         print(f"port_{k}: {size}x{size}")
+    for k, b in CLOSE.items():
+        im.crop(b).save(OUT / f"{k}.png")
+        print(f"{k}: {b[2]-b[0]}x{b[3]-b[1]}")
 
 
 if __name__ == "__main__":
