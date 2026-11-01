@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anatomy Kong: The Lost Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#06100c;height:100%}
+#ak{
+  --pix:'Press Start 2P',ui-monospace,monospace;
+  --sans:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --ink:#f3ecd6; --dim:#a3b09a; --gold:#ffcf3a; --leaf:#7ed957; --bone:#eadfc4;
+  --ok:#7dff9a; --bad:#ff6b6b; --frame:#c9a46a; --panel:rgba(14,20,14,.95);
+  position:relative;height:100vh;height:100dvh;min-height:440px;display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 40%,#12261c 0%,#06100c 70%);color:var(--ink);font-family:var(--sans);
+  overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+}
+#ak button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+#ak button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+#ak .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- HUD ---------- */
+#ak .hud{flex:none;display:flex;align-items:center;gap:12px;padding:6px 12px;background:#0c1810;border-bottom:2px solid #2c4424;font-family:var(--pix)}
+#ak .hud img{width:26px;height:26px;border-radius:4px;background:#d3d5d3;padding:2px}
+#ak .brand{display:flex;flex-direction:column;gap:4px;min-width:0}
+#ak .brand b{font-size:11px;color:var(--gold);font-weight:400;text-shadow:2px 2px 0 #5a3410;white-space:nowrap}
+#ak .brand small{font-size:7px;color:var(--dim);white-space:nowrap}
+#ak .cell{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
+#ak .cell span{font-size:6px;color:var(--dim);letter-spacing:1px}
+#ak .cell output{font-size:10px;display:flex;align-items:center;gap:4px}
+#ak .cell output img{width:14px;height:10px;padding:0;background:none;border-radius:0;image-rendering:pixelated}
+#ak .hearts{display:flex;gap:3px}
+#ak .hearts i{width:11px;height:10px;background:#ff5a6a;clip-path:polygon(50% 100%,0 40%,0 15%,20% 0,40% 0,50% 15%,60% 0,80% 0,100% 15%,100% 40%)}
+#ak .hearts i.off{background:#2a3428}
+#ak .hearts i.pop{animation:ak-popb .5s ease-out}
+@keyframes ak-popb{0%{transform:scale(1.7)}100%{transform:scale(1)}}
+#ak .marks{display:flex;gap:6px;margin-left:auto}
+#ak .marks img{width:22px;height:22px;image-rendering:pixelated;opacity:.22;filter:grayscale(1);background:none;padding:0}
+#ak .marks img.on{opacity:1;filter:none}
+#ak .hb{font-family:var(--pix);font-size:9px;padding:6px 8px;border:2px solid #2c4424 !important;border-radius:4px;color:var(--dim) !important}
+#ak .hb[aria-pressed="true"]{color:var(--gold) !important;border-color:#5a6a30 !important}
+#ak .hb[hidden]{display:none}
+#ak .skip{position:absolute;right:calc(var(--u)*4);top:calc(var(--u)*4);z-index:22;font-family:var(--pix) !important;font-size:max(7px,calc(var(--u)*3.6)) !important;padding:calc(var(--u)*2) calc(var(--u)*3) !important;background:rgba(6,12,8,.75) !important;border:1px solid rgba(201,164,106,.6) !important;border-radius:4px;color:var(--gold) !important}
+#ak .skip[hidden]{display:none}
+@media (max-width:600px){#ak .brand small{display:none}#ak .brand b{font-size:9px}#ak .hud{gap:8px;padding:5px 8px}}
+@media (max-width:440px){#ak .brand{display:none}}
+
+/* ---------- arena + stage ---------- */
+#ak .arena{position:relative;flex:1;min-height:0}
+#ak .stage{position:absolute;--u:3px;box-shadow:0 0 0 2px #1c2c18,0 0 60px rgba(120,220,120,.08);overflow:hidden;background:#000}
+#ak #cv{display:block;width:100%;height:100%;image-rendering:pixelated;touch-action:none}
+#ak .px{font-family:var(--pix);font-size:max(8px,calc(var(--u)*5.2));line-height:1.65}
+
+#ak .hint{position:absolute;left:50%;top:calc(var(--u)*4);transform:translateX(-50%);padding:calc(var(--u)*2) calc(var(--u)*4);
+  background:rgba(6,12,8,.8);border:1px solid rgba(201,164,106,.5);border-radius:calc(var(--u)*1.5);color:var(--gold);
+  font-family:var(--pix);font-size:max(7px,calc(var(--u)*4));white-space:nowrap;display:none;z-index:5;pointer-events:none}
+#ak .hint.on{display:block;animation:ak-pulse 2s ease-in-out infinite}
+@keyframes ak-pulse{50%{opacity:.6}}
+
+#ak .banner{position:absolute;left:0;right:0;top:24%;text-align:center;display:none;z-index:15;pointer-events:none}
+#ak .banner.on{display:block;animation:ak-pop .45s cubic-bezier(.34,1.5,.64,1)}
+#ak .banner b{display:inline-block;font-family:var(--pix);font-weight:400;font-size:max(10px,calc(var(--u)*8));color:var(--gold);
+  text-shadow:0 0 calc(var(--u)*4) rgba(255,207,58,.8),calc(var(--u)*1) calc(var(--u)*1) 0 #5a3410;padding:0 calc(var(--u)*4)}
+#ak .banner small{display:block;margin-top:calc(var(--u)*4);font-family:var(--pix);font-size:max(7px,calc(var(--u)*4));color:var(--ink);text-shadow:1px 1px 0 #000}
+@keyframes ak-pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* dialogue */
+#ak .dlg{position:absolute;left:calc(var(--u)*6);right:calc(var(--u)*6);bottom:calc(var(--u)*5);min-height:calc(var(--u)*46);
+  background:var(--panel);border:calc(var(--u)*1.5) solid var(--frame);border-radius:calc(var(--u)*2);
+  box-shadow:inset 0 0 0 calc(var(--u)*1) #3a2e1a,0 0 0 calc(var(--u)*.8) #000;
+  padding:calc(var(--u)*5);display:none;gap:calc(var(--u)*5);align-items:flex-start;cursor:pointer;z-index:20}
+#ak .dlg.on{display:flex}
+#ak .dlg.top{bottom:auto;top:calc(var(--u)*5)}
+#ak #dlgPort{flex:none;width:calc(var(--u)*30);height:calc(var(--u)*30);image-rendering:pixelated;border:calc(var(--u)*1) solid #3a2e1a;background:#16221a}
+#ak .dlg-body{flex:1;min-width:0}
+#ak #dlgName{display:block;font-weight:400;margin-bottom:calc(var(--u)*2.5);font-size:max(7px,calc(var(--u)*4.4))}
+#ak #dlgText{min-height:3.3em;white-space:pre-wrap}
+#ak .dlg-more{position:absolute;right:calc(var(--u)*5);bottom:calc(var(--u)*3);color:var(--gold);font-size:max(7px,calc(var(--u)*4));display:none;animation:ak-bob .6s steps(2) infinite}
+#ak .dlg.done .dlg-more{display:block}
+@keyframes ak-bob{50%{transform:translateY(3px)}}
+
+/* cards: quiz + level end */
+#ak .card{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:calc(var(--u)*5);z-index:25;background:rgba(3,8,5,.55)}
+#ak .card.on{display:flex}
+#ak .card-in{width:100%;max-height:100%;overflow:auto;background:var(--panel);border:calc(var(--u)*1.5) solid var(--frame);border-radius:calc(var(--u)*2);
+  box-shadow:inset 0 0 0 calc(var(--u)*1) #3a2e1a;padding:calc(var(--u)*5)}
+#ak .q-wrap{display:flex;gap:calc(var(--u)*5);align-items:stretch}
+#ak .q-fig{flex:none;width:calc(var(--u)*70);display:flex;flex-direction:column;gap:calc(var(--u)*2)}
+#ak #qCv{width:100%;aspect-ratio:120/168;border-radius:calc(var(--u)*1.5);border:calc(var(--u)*1) solid #3a4a58;background:#0b1520}
+#ak .q-fig small{font-size:max(9px,calc(var(--u)*3));color:var(--dim);line-height:1.3}
+#ak .q-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:calc(var(--u)*3)}
+#ak .q-kick{font-family:var(--pix);font-size:max(6px,calc(var(--u)*3.2));color:var(--leaf)}
+#ak .q-main h3{font-family:var(--pix);font-weight:400;font-size:max(8px,calc(var(--u)*4.6));line-height:1.6;color:var(--gold)}
+#ak .q-opts{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*2.5)}
+#ak .q-opts button{font-family:var(--pix);font-size:max(7px,calc(var(--u)*4));padding:calc(var(--u)*3.5) calc(var(--u)*2);border:2px solid #5a6a30;border-radius:5px;background:#1c2a16;text-align:left;line-height:1.3}
+#ak .q-opts button kbd{font-family:var(--pix);color:var(--dim);margin-right:calc(var(--u)*1.5)}
+#ak .q-opts button:hover:not(:disabled){border-color:var(--gold)}
+#ak .q-opts button:disabled{opacity:.35;cursor:default;text-decoration:line-through}
+#ak .q-opts button.right{border-color:var(--ok);color:var(--ok);opacity:1;text-decoration:none}
+#ak .q-fb{font-size:max(12px,calc(var(--u)*4.4));line-height:1.45;color:#e2e8d2;min-height:2.9em}
+#ak .q-fb b{font-family:var(--pix);font-weight:400;font-size:.8em}
+#ak .q-fb .y{color:var(--ok)} #ak .q-fb .n{color:var(--bad)}
+#ak .q-fb ul{list-style:none;display:grid;gap:calc(var(--u)*1.5);margin-top:calc(var(--u)*2)}
+#ak .q-fb li{padding-left:calc(var(--u)*4);position:relative}
+#ak .q-fb li::before{content:'';position:absolute;left:0;top:.45em;width:calc(var(--u)*1.8);height:calc(var(--u)*1.8);background:var(--gold)}
+@media (max-width:620px){#ak .q-fig{width:calc(var(--u)*52)}}
+#ak .row{display:flex;gap:calc(var(--u)*4);margin-top:calc(var(--u)*4);flex-wrap:wrap}
+#ak .btn{flex:1;font-family:var(--pix) !important;font-size:max(8px,calc(var(--u)*4.4)) !important;padding:calc(var(--u)*4) !important;border:2px solid #5a6a30 !important;border-radius:5px;background:#1c2a16 !important;white-space:nowrap}
+#ak .btn.pri{background:#ffcf3a !important;border-color:#ffe39a !important;color:#2a1408 !important;box-shadow:0 0 12px rgba(255,207,58,.35)}
+#ak .btn[hidden]{display:none}
+#ak .end h2{font-family:var(--pix);font-weight:400;color:var(--gold);font-size:max(10px,calc(var(--u)*7));margin-bottom:calc(var(--u)*2)}
+#ak .end .sub{font-family:var(--pix);font-size:max(6px,calc(var(--u)*3.4));color:var(--leaf);margin-bottom:calc(var(--u)*5)}
+#ak .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:calc(var(--u)*2.5);margin-bottom:calc(var(--u)*5)}
+#ak .stats div{background:#16221a;border:1px solid #2c4424;border-radius:4px;padding:calc(var(--u)*3);font-family:var(--pix);text-align:center}
+#ak .stats span{display:block;font-size:max(6px,calc(var(--u)*2.8));color:var(--dim);margin-bottom:calc(var(--u)*2)}
+#ak .stats b{font-weight:400;font-size:max(9px,calc(var(--u)*5))}
+@media (max-width:520px){#ak .stats{grid-template-columns:1fr 1fr}}
+#ak .emarks{display:flex;gap:calc(var(--u)*4);flex-wrap:wrap}
+#ak .emarks div{display:flex;align-items:center;gap:calc(var(--u)*2.5);font-family:var(--pix);font-size:max(7px,calc(var(--u)*3.6));opacity:.35}
+#ak .emarks div.on{opacity:1;color:var(--gold)}
+#ak .emarks img{width:calc(var(--u)*14);height:calc(var(--u)*14);image-rendering:pixelated}
+#ak .next{margin-top:calc(var(--u)*4);font-size:max(11px,calc(var(--u)*3.8));color:var(--dim)}
+
+/* title */
+#ak .title{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:40;text-align:center;
+  background:radial-gradient(ellipse at 50% 45%,rgba(6,16,10,.25),rgba(3,8,5,.86) 75%)}
+#ak .title.on{display:flex}
+#ak .t-in{padding:calc(var(--u)*6);max-width:100%}
+#ak .t-kick{font-family:var(--pix);font-size:max(7px,calc(var(--u)*4));color:var(--dim);margin-bottom:calc(var(--u)*4)}
+#ak .title h1{font-family:var(--pix);font-weight:400;font-size:max(18px,calc(var(--u)*14));line-height:1.25;color:var(--gold);
+  text-shadow:calc(var(--u)*1.2) calc(var(--u)*1.2) 0 #8a4a10,calc(var(--u)*2.4) calc(var(--u)*2.4) 0 #2a1404,0 0 calc(var(--u)*10) rgba(255,200,60,.4)}
+#ak .t-sub{font-family:var(--pix);font-size:max(8px,calc(var(--u)*5.2));color:var(--bone);margin:calc(var(--u)*4) 0 calc(var(--u)*2);letter-spacing:1px}
+#ak .t-world{font-family:var(--pix);font-size:max(6px,calc(var(--u)*3.4));color:var(--leaf);margin-bottom:calc(var(--u)*8)}
+#ak .t-btns .btn{flex:none;min-width:calc(var(--u)*110)}
+#ak .t-keys{margin-top:calc(var(--u)*6);font-size:max(11px,calc(var(--u)*4.2));color:var(--dim);line-height:1.7}
+#ak .t-keys kbd{font-family:var(--pix);font-size:.75em;color:var(--ink);background:#1c2a16;border:1px solid #2c4424;border-radius:3px;padding:1px 4px}
+
+/* touch pad */
+#ak .pad{position:absolute;left:0;right:0;bottom:0;height:150px;display:none;pointer-events:none;z-index:50}
+#ak.touch .pad{display:block}
+#ak .dpad{position:absolute;left:14px;bottom:14px;width:126px;height:126px;pointer-events:auto;touch-action:none}
+#ak .dpad button{position:absolute;width:42px;height:42px;background:rgba(20,34,22,.82);border:2px solid #5a6a30;border-radius:6px;color:var(--gold);font-size:16px}
+#ak .dpad button.on{background:rgba(255,207,58,.35)}
+#ak .dpad [data-d=up]{left:42px;top:0} #ak .dpad [data-d=down]{left:42px;bottom:0}
+#ak .dpad [data-d=left]{left:0;top:42px} #ak .dpad [data-d=right]{right:0;top:42px}
+#ak .abtns{position:absolute;right:14px;bottom:18px;display:flex;gap:14px;align-items:flex-end;pointer-events:auto}
+#ak .abtns button{width:62px;height:62px;border-radius:50%;background:rgba(40,120,50,.85);border:3px solid #9cf08a;color:#fff;font-family:var(--pix);font-size:13px;touch-action:none}
+#ak .abtns button.b{width:52px;height:52px;font-size:11px;background:rgba(150,90,30,.85);border-color:#ffc070;margin-bottom:26px}
+#ak .abtns button.on{transform:scale(.94);filter:brightness(1.3)}
+
+/* footer */
+#ak .foot{flex:none;padding:4px 12px 6px;font-size:10.5px;color:#6e7d64;line-height:1.4;border-top:1px solid #16241a}
+#ak .foot a{color:#a3b09a}
+#ak .foot summary{cursor:pointer;list-style:none}
+#ak .foot summary::-webkit-details-marker{display:none}
+#ak .foot details p{margin-top:3px;user-select:text;-webkit-user-select:text}
+
+/* ---------- Rad-Lad marker toast ---------- */
+#ak .ach-wrap{position:absolute;top:52px;right:12px;z-index:300;width:min(420px,calc(100% - 24px));display:none}
+#ak .ach-wrap.on{display:block}
+#ak .ach{position:relative;background:linear-gradient(135deg,#1a1a1a 0%,#2a2a2a 100%);border-left:5px solid #4ade80;border-radius:8px;
+  padding:14px 16px;display:flex;align-items:center;gap:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);opacity:0;transform:translateX(90px)}
+#ak .ach-logo{width:38px;height:38px;object-fit:contain;flex-shrink:0;border-radius:4px;background:#d3d5d3;padding:3px;opacity:0}
+#ak .ach-marker{width:52px;height:52px;flex-shrink:0;position:relative;border-radius:10px;background:linear-gradient(145deg,#1c2a16,#06100c);
+  border:2px solid #4ade80;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(74,222,128,.45);
+  opacity:0;transform:translateY(-70px) scale(1.7) rotate(-12deg)}
+#ak .ach-marker img{width:40px;height:40px;image-rendering:pixelated}
+#ak .ach-marker::before{content:'';position:absolute;inset:-8px;border-radius:14px;background:radial-gradient(circle,rgba(74,222,128,.5) 0%,transparent 70%);opacity:0}
+#ak .ach-text{flex:1;min-width:0;opacity:0;transform:translateY(8px)}
+#ak .ach-label{font-size:11px;font-weight:600;letter-spacing:1.3px;color:#4ade80;text-transform:uppercase;margin-bottom:3px}
+#ak .ach-title{font-size:18px;font-weight:700;color:#f8fafc;line-height:1.15}
+#ak .ach-sub{font-size:12px;color:#94a3b8;margin-top:3px}
+#ak .ach-share{margin-top:10px;text-align:center;font-size:13px;color:#94a3b8;background:rgba(5,6,15,.85);padding:6px 10px;border-radius:6px;opacity:0;transform:translateY(10px)}
+#ak .ach-share strong{color:#4ade80}
+#ak .ach-btns{position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .25s}
+#ak .ach:hover .ach-btns,#ak .ach:focus-within .ach-btns{opacity:1}
+#ak .ach-btns button{background:rgba(255,255,255,.07);color:#94a3b8;font-size:11px;padding:4px 9px;border-radius:4px}
+#ak .ach-wrap.is-playing .ach{animation:ak-slide .7s cubic-bezier(.22,1,.36,1) .2s forwards}
+#ak .ach-wrap.is-playing .ach-logo{animation:ak-fade .5s ease .9s forwards}
+#ak .ach-wrap.is-playing .ach-marker{animation:ak-stamp .85s cubic-bezier(.34,1.4,.64,1) .55s forwards}
+#ak .ach-wrap.is-playing .ach-marker::before{animation:ak-glow .6s ease 1.15s forwards}
+#ak .ach-wrap.is-playing .ach-text{animation:ak-textin .5s ease 1.25s forwards}
+#ak .ach-wrap.is-playing .ach-share{animation:ak-up .55s ease 1.7s forwards}
+@keyframes ak-slide{to{opacity:1;transform:translateX(0)}}
+@keyframes ak-fade{to{opacity:1}}
+@keyframes ak-textin{to{opacity:1;transform:translateY(0)}}
+@keyframes ak-up{to{opacity:1;transform:translateY(0)}}
+@keyframes ak-stamp{0%{opacity:0;transform:translateY(-70px) scale(1.7) rotate(-12deg)}55%{opacity:1;transform:translateY(10px) scale(.92) rotate(4deg)}75%{transform:translateY(-5px) scale(1.06) rotate(-2deg)}100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}}
+@keyframes ak-glow{0%{opacity:0;transform:scale(.6)}40%{opacity:1;transform:scale(1.1)}100%{opacity:0;transform:scale(1.4)}}
+@media (prefers-reduced-motion:reduce){
+  #ak .ach-wrap.is-playing .ach,#ak .ach-wrap.is-playing .ach-logo,#ak .ach-wrap.is-playing .ach-marker,
+  #ak .ach-wrap.is-playing .ach-text,#ak .ach-wrap.is-playing .ach-share{animation-duration:.01s;animation-delay:0s}
+  #ak .hint.on{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="ak">
+  <header class="hud">
+    <img id="hLogo" alt="Rad-Lad">
+    <div class="brand"><b>Anatomy Kong</b><small>The Lost Atlas</small></div>
+    <div class="cell"><span>TOKENS</span><output id="hTok"><img id="hTokImg" alt="">0</output></div>
+    <div class="cell"><span>PAGES</span><output id="hPage">0/2</output></div>
+    <div class="cell"><span>HEARTS</span><div class="hearts" id="hHearts"></div></div>
+    <div class="marks" id="hMarks"></div>
+    <button class="hb" id="bMenu" hidden>MENU</button>
+    <button class="hb" id="bSound" aria-pressed="true" aria-label="Sound">SND</button>
+  </header>
+
+  <main class="arena" id="arena">
+    <div class="stage" id="stage">
+      <canvas id="cv" width="256" height="224" role="img" aria-label="Game view: a jungle island of bones"></canvas>
+      <div class="hint" id="hint"></div>
+      <button class="skip" id="bSkip" hidden>SKIP &#9656;&#9656;</button>
+      <div class="banner" id="banner"><b id="bannerT"></b><small id="bannerS"></small></div>
+
+      <div class="dlg px" id="dlg" role="dialog" aria-live="polite">
+        <canvas id="dlgPort" width="26" height="26" aria-hidden="true"></canvas>
+        <div class="dlg-body"><b id="dlgName"></b><p id="dlgText"></p></div>
+        <span class="dlg-more" aria-hidden="true">&#9660;</span>
+      </div>
+
+      <div class="card" id="quiz" role="dialog" aria-label="Anatomy challenge"><div class="card-in">
+        <div class="q-wrap">
+          <div class="q-fig"><canvas id="qCv" width="120" height="168"></canvas><small id="qCap"></small></div>
+          <div class="q-main">
+            <div class="q-kick" id="qKick"></div>
+            <h3 id="qPrompt"></h3>
+            <div class="q-opts" id="qOpts"></div>
+            <div class="q-fb" id="qFb" aria-live="polite"></div>
+            <div class="row"><button class="btn pri" id="qGo" hidden>Rebuild the bridge &#9654;</button></div>
+          </div>
+        </div>
+      </div></div>
+
+      <div class="card end" id="end"><div class="card-in">
+        <h2>Level cleared!</h2>
+        <div class="sub" id="eSub"></div>
+        <div class="stats" id="eStats"></div>
+        <div class="emarks" id="eMarks"></div>
+        <p class="next">More of Bone Island is still being charted. Level 2 is coming soon.</p>
+        <div class="row"><button class="btn" id="eTitle">Title screen</button><button class="btn pri" id="eAgain">Play again &#9654;</button></div>
+      </div></div>
+
+      <div class="title on" id="title"><div class="t-in">
+        <div class="t-kick">RAD-LAD PRESENTS</div>
+        <h1>Anatomy<br>Kong</h1>
+        <div class="t-sub">THE LOST ATLAS</div>
+        <div class="t-world">WORLD 1 &middot; BONE ISLAND</div>
+        <div class="t-btns"><button class="btn pri" id="tStart">Start adventure</button></div>
+        <p class="t-keys" id="tKeys"><kbd>&larr;</kbd><kbd>&rarr;</kbd> run &middot; <kbd>Z</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd>/<kbd>Shift</kbd> roll<br><kbd>&uarr;</kbd><kbd>&darr;</kbd> climb vines &middot; <kbd>&uarr;</kbd> read a plinth</p>
+      </div></div>
+    </div>
+
+    <div class="pad" id="pad" aria-hidden="true">
+      <div class="dpad" id="dpad">
+        <button data-d="up">&#9650;</button><button data-d="left">&#9664;</button>
+        <button data-d="right">&#9654;</button><button data-d="down">&#9660;</button>
+      </div>
+      <div class="abtns"><button class="b" id="padB">ROLL</button><button id="padA">JUMP</button></div>
+    </div>
+  </main>
+
+  <footer class="foot" id="foot"></footer>
+
+  <div class="ach-wrap" id="ach" role="status">
+    <div class="ach">
+      <img class="ach-logo" id="achLogo" alt="Rad-Lad">
+      <div class="ach-marker" id="achMarker"></div>
+      <div class="ach-text">
+        <div class="ach-label">Marker Unlocked</div>
+        <div class="ach-title" id="achTitle"></div>
+        <div class="ach-sub" id="achSub"></div>
+      </div>
+      <div class="ach-btns"><button id="achReplay">Replay</button><button id="achClose" aria-label="Close">&times;</button></div>
+    </div>
+    <div class="ach-share">Share your <strong id="achShare"></strong> Marker achievement below!</div>
+  </div>
+  <div class="sr" id="live" aria-live="polite"></div>
+</div>
+
+<script>
+"use strict";
+var ASSETS = /*__ASSETS__*/{};
+
+var W = 256, H = 224, T = 16;
+function $(id){ return document.getElementById(id); }
+var REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+function load(k, d){ try{ var v = localStorage.getItem("ak." + k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } }
+function save(k, v){ try{ localStorage.setItem("ak." + k, JSON.stringify(v)); }catch(e){} }
+function shuffle(a){ a = a.slice(); for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function mulberry(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function clamp(v, a, b){ return v < a ? a : v > b ? b : v; }
+function approach(v, t, d){ return v < t ? Math.min(t, v + d) : Math.max(t, v - d); }
+function say_live(t){ $("live").textContent = t; }
+
+/* ======================================================================
+   SOUND (synthesised chip sounds, no audio files)
+   ====================================================================== */
+var SFX = {
+  on: load("sound", true), ctx: null,
+  ensure: function(){
+    if (!this.ctx){ try{ this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ return null; } }
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  },
+  tone: function(f0, f1, dur, type, vol, delay){
+    var a = this.ctx, t = a.currentTime + (delay || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || "square"; o.frequency.setValueAtTime(f0, t);
+    if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+    g.gain.setValueAtTime(vol || .05, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02);
+  },
+  noise: function(dur, vol, delay){
+    var a = this.ctx, t = a.currentTime + (delay || 0);
+    var n = Math.floor(a.sampleRate * dur), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+    var s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    s.buffer = buf; f.type = "lowpass"; f.frequency.setValueAtTime(700, t); f.frequency.exponentialRampToValueAtTime(80, t + dur);
+    g.gain.setValueAtTime(vol || .25, t);
+    s.connect(f); f.connect(g); g.connect(a.destination); s.start(t);
+  },
+  play: function(n){
+    if (!this.on || !this.ensure()) return;
+    var T = this.tone.bind(this);
+    switch (n){
+      case "jump":   T(240, 620, .13, "square", .035); break;
+      case "token":  T(1320, 1320, .05, "square", .03); T(1760, 1760, .09, "square", .03, .05); break;
+      case "stomp":  T(520, 130, .12, "square", .05); this.noise(.08, .25); break;
+      case "roll":   this.noise(.22, .18); T(160, 90, .2, "triangle", .06); break;
+      case "hurt":   T(420, 110, .3, "sawtooth", .05); break;
+      case "ko":     [523, 494, 466, 440, 415, 392, 330, 262].forEach(function(f, i){ T(f, f, .12, "square", .045, i * .11); }); break;
+      case "fall":   T(900, 90, .7, "square", .04); break;
+      case "page":   [392, 494, 587, 784].forEach(function(f, i){ T(f, f, .12, "square", .05, i * .1); });
+                     T(988, 988, .6, "square", .045, .42); T(494, 494, .6, "triangle", .08, .42); break;
+      case "cp":     [659, 784, 1047].forEach(function(f, i){ T(f, f, .1, "square", .045, i * .08); }); break;
+      case "plank":  T(300 + Math.random() * 80, 200, .06, "square", .04); this.noise(.05, .15); break;
+      case "select": T(660, 660, .06, "square", .045); break;
+      case "blip":   T(740, 740, .022, "square", .022); break;
+      case "right":  T(660, 660, .08, "square", .05); T(990, 990, .18, "square", .05, .08); break;
+      case "wrong":  T(300, 140, .35, "sawtooth", .05); T(200, 90, .4, "square", .035, .06); break;
+      case "ach":    [523, 659, 784, 1047, 784, 1047, 1319].forEach(function(f, i){ T(f, f, .14, "square", .05, i * .09); }); break;
+      case "clear":  [523, 523, 659, 784, 659, 784, 1047].forEach(function(f, i){ T(f, f, i === 6 ? .6 : .13, "square", .05, [0, .14, .28, .42, .63, .77, .95][i]); });
+                     [262, 330, 392, 523].forEach(function(f, i){ T(f, f, .25, "triangle", .07, i * .28); }); break;
+      case "laugh":  [392, 349, 392, 349, 392, 330].forEach(function(f, i){ T(f, f * .97, .09, "sawtooth", .03, i * .1); }); break;
+    }
+  }
+};
+
+/* ======================================================================
+   SPRITES (drawn with rectangles, then auto-outlined)
+   ====================================================================== */
+function bres(a, b, cb){
+  var x0 = a[0], y0 = a[1], x1 = b[0], y1 = b[1], dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, e = dx + dy;
+  for (;;){ cb(x0, y0); if (x0 === x1 && y0 === y1) break; var e2 = 2 * e; if (e2 >= dy){ e += dy; x0 += sx; } if (e2 <= dx){ e += dx; y0 += sy; } }
+}
+function bake(w, h, fn, noOutline){
+  var c = document.createElement("canvas"); c.width = w + 2; c.height = h + 2;
+  var x = c.getContext("2d");
+  var R = function(X, Y, ww, hh, col){ x.fillStyle = col; x.fillRect(X + 1, Y + 1, ww, hh); };
+  R.line = function(pts, col){ for (var i = 0; i < pts.length - 1; i++) bres(pts[i], pts[i + 1], function(px, py){ R(px, py, 1, 1, col); }); };
+  R.ctx = x;
+  fn(R);
+  if (!noOutline){
+    var cw = c.width, ch = c.height, d = x.getImageData(0, 0, cw, ch), a = d.data, op = new Uint8Array(cw * ch), i;
+    for (i = 0; i < cw * ch; i++) op[i] = a[i * 4 + 3] > 0 ? 1 : 0;
+    for (var yy = 0; yy < ch; yy++) for (var xx = 0; xx < cw; xx++){
+      i = yy * cw + xx; if (op[i]) continue;
+      if ((xx > 0 && op[i - 1]) || (xx < cw - 1 && op[i + 1]) || (yy > 0 && op[i - cw]) || (yy < ch - 1 && op[i + cw])){
+        a[i * 4] = 18; a[i * 4 + 1] = 16; a[i * 4 + 2] = 24; a[i * 4 + 3] = 255;
+      }
+    }
+    x.putImageData(d, 0, 0);
+  }
+  return c;
+}
+function mk(w, h){ var c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+// snap anti-aliased path drawing to hard pixels
+function crisp(c){
+  var x = c.getContext("2d"), d = x.getImageData(0, 0, c.width, c.height), a = d.data;
+  for (var i = 3; i < a.length; i += 4) a[i] = a[i] > 110 ? 255 : 0;
+  x.putImageData(d, 0, 0); return c;
+}
+function spriteURL(c, scale){
+  var o = mk(c.width * scale, c.height * scale), x = o.getContext("2d");
+  x.imageSmoothingEnabled = false; x.drawImage(c, 0, 0, o.width, o.height); return o.toDataURL();
+}
+
+var HC = { hair:"#a5501f", hairD:"#6e3210", hairL:"#d27c3a", skin:"#f2b98a", skinD:"#c98760", scrub:"#2e6cb0", scrubD:"#1d4880", scrubL:"#5a97d8",
+  pack:"#8a5a2c", packD:"#5c3a1a", packL:"#b47c42", roll:"#d4d4c8", rollD:"#9a9a8e", shoe:"#4a2a16", badge:"#ffd23a", eye:"#1a1020", card:"#f2f2ea", belt:"#4a3220", tie:"#3a6ad0" };
+var BONE = "#eadfc4", BONED = "#b9a886", BONEL = "#fff8e6";
+
+// hero, facing right. pose: stand | run | jump | fall | hurt | climb | roll
+function heroSpr(pose, f){
+  return bake(18, 26, function(R){
+    if (pose === "roll"){
+      for (var y = 0; y < 16; y++) for (var x = 0; x < 16; x++){
+        var dx = x - 7.5, dy = y - 9.5, r = dx * dx + dy * dy; if (r > 52) continue;
+        var ang = Math.atan2(dy, dx), col = HC.scrub;
+        if (ang < -1.9 || ang > 2.6) col = HC.pack; else if (ang < -0.6) col = HC.hair; else if (ang < 0.5 && r < 30) col = HC.skin;
+        if (r > 40 && col === HC.scrub) col = HC.scrubD;
+        R(x + 1, y + 7, 1, 1, col);
+      }
+      R(4, 12, 3, 2, HC.roll); R(9, 11, 2, 1, HC.hairL); R(11, 14, 1, 1, HC.eye);
+      return;
+    }
+    if (pose === "climb"){
+      var u = f ? 1 : 0;
+      R(5, 1, 8, 9, HC.hair); R(6, 1, 6, 1, HC.hairL); R(8, 9, 2, 4, HC.hairD); R(8, 8, 2, 1, HC.tie);
+      R(u ? 13 : 3, 2, 2, 7, HC.skin); R(u ? 13 : 3, 9, 2, 2, HC.scrub);
+      R(u ? 3 : 13, 10, 2, 5, HC.skin); R(u ? 3 : 13, 10, 2, 1, HC.scrub);
+      R(4, 9, 10, 2, HC.roll); R(4, 10, 10, 1, HC.rollD);
+      R(4, 11, 10, 8, HC.pack); R(4, 17, 10, 2, HC.packD); R(5, 12, 1, 5, HC.packL); R(7, 13, 4, 3, HC.packD);
+      R(6, 19, 2, u ? 4 : 3, HC.scrubD); R(10, 19, 2, u ? 3 : 4, HC.scrubD);
+      R(5, u ? 23 : 22, 3, 2, HC.shoe); R(10, u ? 22 : 23, 3, 2, HC.shoe);
+      return;
+    }
+    var by = (pose === "run" && (f === 1 || f === 3)) || (pose === "stand" && f === 1) ? 1 : 0;
+    if (pose === "jump") by = -1;
+    var sway = pose === "run" ? [0, 1, 0, -1][f] : pose === "jump" ? 2 : pose === "fall" ? -1 : 0;
+    // ponytail (behind)
+    R(2, 3 + by - sway, 4, 3, HC.hair); R(1, 5 + by - sway, 3, 3, HC.hairD); R(2, 3 + by - sway, 2, 1, HC.hairL); R(5, 3 + by, 1, 2, HC.tie);
+    // legs: [back x, back dx, front x, front dx]
+    var L = pose === "run" ? [[8, -3, 9, 3], [8, -1, 9, 1], [9, 3, 8, -3], [9, 1, 8, -1]][f]
+          : pose === "jump" ? [7, -2, 10, 2] : pose === "fall" ? [7, -3, 10, 3] : pose === "hurt" ? [6, -2, 11, 2] : [7, 0, 10, 0];
+    var len = pose === "jump" ? 3 : 4;
+    [[L[0], L[1], HC.scrubD], [L[2], L[3], HC.scrub]].forEach(function(l){
+      for (var i = 0; i <= len; i++) R(l[0] + Math.round(l[1] * i / len), 18 + by + i, 2, 1, l[2]);
+      R(l[0] + l[1] - (l[1] < 0 ? 1 : 0), 19 + by + len, 3, 2, HC.shoe);
+    });
+    // backpack + bedroll
+    R(2, 11 + by, 5, 8, HC.pack); R(2, 17 + by, 5, 2, HC.packD); R(3, 12 + by, 1, 4, HC.packL); R(2, 9 + by, 5, 2, HC.roll); R(2, 10 + by, 5, 1, HC.rollD);
+    // torso
+    R(6, 11 + by, 6, 7, HC.scrub); R(6, 11 + by, 1, 7, HC.scrubD); R(11, 12 + by, 1, 5, HC.scrubL);
+    R(6, 17 + by, 6, 1, HC.belt); R(7, 11 + by, 1, 4, HC.packD); R(6, 12 + by, 1, 1, HC.badge);
+    R(9, 11 + by, 2, 1, HC.skin); R(9, 12 + by, 1, 2, "#2a2a40"); R(9, 14 + by, 2, 2, HC.card);
+    // head
+    R(7, 3 + by, 6, 7, HC.skin); R(6, 1 + by, 7, 3, HC.hair); R(6, 3 + by, 2, 5, HC.hair); R(12, 3 + by, 1, 1, HC.hair); R(7, 1 + by, 4, 1, HC.hairL);
+    R(8, 6 + by, 1, 1, HC.skinD);
+    if (pose === "hurt"){ R(10, 5 + by, 1, 1, HC.eye); R(12, 5 + by, 1, 1, HC.eye); R(11, 6 + by, 1, 1, HC.eye); R(11, 8 + by, 2, 1, "#7a2a2a"); }
+    else { R(11, 5 + by, 1, 2, HC.eye); R(12, 8 + by, 1, 1, HC.skinD); R(10, 7 + by, 1, 1, "#e08a6a"); }
+    // front arm
+    if (pose === "jump" || pose === "hurt"){ R(11, 7 + by, 2, 3, HC.skin); R(11, 10 + by, 2, 2, HC.scrub); if (pose === "hurt"){ R(3, 6 + by, 2, 3, HC.skin); } }
+    else if (pose === "run" && f === 0){ R(11, 11 + by, 2, 2, HC.scrub); R(12, 13 + by, 2, 2, HC.skin); }
+    else if (pose === "run" && f === 2){ R(7, 12 + by, 2, 2, HC.scrub); R(6, 14 + by, 2, 2, HC.skin); }
+    else { R(10, 11 + by, 2, 2, HC.scrub); R(10, 13 + by, 2, 3, HC.skin); }
+  });
+}
+
+function crabSpr(f){
+  return bake(16, 11, function(R){
+    R(4, 0, 1, 3, "#2a1e1a"); R(11, 0, 1, 3, "#2a1e1a"); R(3, 0, 2, 1, "#fff"); R(11, 0, 2, 1, "#fff"); R(3, 0, 1, 1, "#000"); R(12, 0, 1, 1, "#000");
+    R(2, 3, 12, 5, BONE); R(3, 2, 10, 1, BONE); R(3, 2, 6, 1, BONEL); R(2, 7, 12, 1, BONED); R(5, 3, 1, 4, BONED); R(10, 3, 1, 4, BONED);
+    var c = f ? 1 : 0;
+    R(0, 2 - c, 2, 3, "#e0703a"); R(14, 2 - c, 2, 3, "#e0703a"); R(0, 2 - c, 1, 1, "#ffb080"); R(15, 2 - c, 1, 1, "#ffb080");
+    var lc = "#7a4a3a";
+    [3, 6, 9, 12].forEach(function(x, i){ var k = (i + f) % 2; R(x + (k ? -1 : 0), 8, 1, 2 + k, lc); });
+  });
+}
+function batSpr(f){
+  return bake(18, 12, function(R){
+    var wc = "#5a3a72", wl = "#8a5aa8";
+    if (f){ R(0, 5, 6, 2, wc); R(1, 7, 4, 2, wc); R(2, 9, 2, 1, wc); R(12, 5, 6, 2, wc); R(13, 7, 4, 2, wc); R(14, 9, 2, 1, wc); R(1, 5, 4, 1, wl); R(13, 5, 4, 1, wl); }
+    else { R(0, 0, 2, 2, wc); R(1, 1, 5, 3, wc); R(3, 3, 3, 3, wc); R(16, 0, 2, 2, wc); R(12, 1, 5, 3, wc); R(12, 3, 3, 3, wc); R(2, 1, 3, 1, wl); R(13, 1, 3, 1, wl); }
+    R(8, 0, 2, 3, BONE); R(6, 3, 6, 6, BONE); R(5, 5, 1, 2, BONE); R(12, 5, 1, 2, BONE); R(6, 8, 6, 1, BONED); R(7, 3, 3, 1, BONEL);
+    R(7, 5, 1, 1, "#e0203a"); R(10, 5, 1, 1, "#e0203a"); R(8, 7, 2, 1, "#5a4030"); R(8, 9, 2, 2, BONED);
+  });
+}
+function spikySpr(f){
+  return bake(16, 13, function(R){
+    [3, 6, 9, 12].forEach(function(x, i){ var h = i % 2 ? 4 : 5; for (var k = 0; k < h; k++) R(x - Math.floor(k / 2), 5 - k + (5 - h), 1 + Math.floor(k / 2) * 2, 1, k === h - 1 ? BONEL : BONE); });
+    R(2, 5, 12, 6, "#8a6a4a"); R(3, 4, 10, 1, "#8a6a4a"); R(3, 5, 10, 1, "#a8845e"); R(2, 10, 12, 1, "#5e4630");
+    R(4, 7, 2, 2, "#fff"); R(10, 7, 2, 2, "#fff"); R(5, 8, 1, 1, "#000"); R(10, 8, 1, 1, "#000"); R(4, 6, 2, 1, "#3a2414"); R(10, 6, 2, 1, "#3a2414");
+    R(f ? 3 : 4, 11, 2, 2, "#3a2414"); R(f ? 11 : 10, 11, 2, 2, "#3a2414");
+  });
+}
+function tokenSpr(){
+  return bake(10, 6, function(R){
+    R(0, 0, 3, 2, "#ffcf3a"); R(0, 4, 3, 2, "#ffcf3a"); R(7, 0, 3, 2, "#ffcf3a"); R(7, 4, 3, 2, "#ffcf3a");
+    R(1, 1, 8, 4, "#ffcf3a"); R(2, 4, 6, 1, "#c8901a"); R(0, 5, 3, 1, "#c8901a"); R(7, 5, 3, 1, "#c8901a"); R(1, 0, 1, 1, "#fff2a8"); R(3, 1, 4, 1, "#fff2a8");
+  });
+}
+function pageSpr(){
+  return bake(12, 14, function(R){
+    R(0, 0, 12, 14, "#f3e2b3"); R(0, 13, 12, 1, "#c8b07a"); R(11, 0, 1, 14, "#d8c290"); R(9, 0, 3, 3, "#d8c290");
+    R(5, 2, 2, 2, "#7a5a3a"); R(5, 4, 2, 4, "#7a5a3a"); R(3, 5, 6, 1, "#7a5a3a"); R(4, 8, 1, 3, "#7a5a3a"); R(7, 8, 1, 3, "#7a5a3a");
+    R(1, 11, 4, 1, "#b09a6a"); R(7, 11, 4, 1, "#b09a6a"); R(1, 0, 2, 5, "#c0303a");
+  });
+}
+function lightboxSpr(on){
+  return bake(16, 26, function(R){
+    R(7, 13, 2, 13, "#7a4a2a"); R(7, 13, 1, 13, "#9a6232"); R(4, 24, 8, 2, "#5a3a20");
+    R(0, 0, 16, 14, "#5a5e68"); R(0, 0, 16, 1, "#8a8e98"); R(0, 13, 16, 1, "#3a3e48");
+    R(2, 2, 12, 10, on ? "#cfeeff" : "#1e2a34");
+    var lc = on ? "#3a5a78" : "#2c3c48";
+    R(7, 3, 2, 8, lc); for (var i = 0; i < 4; i++){ R(3, 4 + i * 2, 4, 1, lc); R(9, 4 + i * 2, 4, 1, lc); }
+    if (on){ R(2, 2, 12, 1, "#ffffff"); }
+  });
+}
+function plinthSpr(){
+  return bake(16, 22, function(R){
+    R(2, 8, 12, 14, "#8f887a"); R(2, 8, 12, 1, "#b8b0a0"); R(2, 8, 1, 14, "#a8a090"); R(12, 9, 2, 13, "#6a6458"); R(0, 20, 16, 2, "#6a6458");
+    R(4, 12, 8, 6, "#6a6458"); R(5, 13, 6, 4, "#3a3630");
+    R(4, 0, 8, 8, "#3fbfa0"); R(5, 0, 6, 8, "#5fe0c0"); R(4, 1, 8, 6, "#5fe0c0"); R(6, 1, 2, 2, "#d8fff4");
+    R(6, 2, 4, 1, "#0e3a30"); R(9, 3, 1, 1, "#0e3a30"); R(7, 4, 2, 1, "#0e3a30"); R(7, 6, 2, 1, "#0e3a30");
+  });
+}
+function portraitDoc(){
+  return bake(24, 24, function(R){
+    R(0, 18, 24, 6, "#ece8ee"); R(9, 18, 6, 6, "#2a2228"); R(8, 18, 1, 6, "#c0bac4"); R(15, 18, 1, 6, "#c0bac4");
+    R(7, 6, 10, 12, "#d9a17e"); R(7, 15, 10, 2, "#c08866"); R(10, 17, 4, 2, "#c08866");
+    R(5, 2, 14, 5, "#9a98a2"); R(4, 4, 3, 7, "#9a98a2"); R(17, 4, 3, 6, "#9a98a2"); R(6, 1, 10, 2, "#d6d4dc"); R(8, 3, 9, 1, "#5a5862"); R(5, 6, 2, 2, "#5a5862");
+    R(8, 9, 3, 2, "#1a1a22"); R(13, 9, 3, 2, "#1a1a22"); R(11, 9, 2, 1, "#1a1a22"); R(9, 9, 1, 1, "#cfe6ff"); R(14, 9, 1, 1, "#cfe6ff");
+    R(8, 8, 3, 1, "#4a4048"); R(13, 7, 3, 1, "#4a4048");
+    R(10, 14, 5, 1, "#7a3a3a"); R(14, 13, 1, 1, "#7a3a3a");
+  });
+}
+function portraitHero(){
+  return bake(24, 24, function(R){
+    R(0, 18, 24, 6, HC.scrub); R(9, 18, 6, 3, HC.skin); R(10, 20, 4, 2, HC.scrubD); R(4, 19, 2, 2, HC.badge);
+    R(1, 4, 5, 10, HC.hair); R(0, 9, 4, 6, HC.hairD);
+    R(6, 5, 12, 13, HC.skin); R(6, 15, 12, 2, HC.skinD);
+    R(5, 1, 15, 5, HC.hair); R(5, 5, 3, 7, HC.hair); R(17, 5, 2, 3, HC.hair); R(7, 1, 9, 1, HC.hairL); R(4, 3, 2, 3, HC.tie);
+    R(9, 9, 2, 2, HC.eye); R(15, 9, 2, 2, HC.eye); R(9, 9, 1, 1, "#fff"); R(15, 9, 1, 1, "#fff"); R(9, 7, 3, 1, HC.hairD); R(14, 7, 3, 1, HC.hairD);
+    R(8, 12, 1, 1, "#c0703a"); R(17, 12, 1, 1, "#c0703a"); R(11, 14, 4, 1, "#a0503a"); R(12, 15, 2, 1, "#e08a6a");
+  });
+}
+function markPick(){
+  return bake(16, 16, function(R){
+    function bone(pts){ R.line(pts, BONE); }
+    for (var i = 0; i < 2; i++){ bone([[2, 3 + i], [12, 13 + i]]); bone([[13, 3 + i], [3, 13 + i]]); }
+    [[1, 1], [11, 1], [1, 12], [11, 12]].forEach(function(p){ R(p[0], p[1], 4, 3, BONE); R(p[0] + 1, p[1], 2, 1, BONEL); });
+    R(6, 6, 4, 4, "#ffcf3a");
+  });
+}
+function markAtlas(){
+  return bake(16, 16, function(R){
+    R(1, 2, 14, 12, "#7a3a20"); R(2, 3, 12, 10, "#f3e2b3"); R(7, 3, 2, 10, "#c8b07a"); R(1, 13, 14, 1, "#4a2010");
+    R(3, 5, 3, 1, "#7a5a3a"); R(3, 7, 3, 1, "#7a5a3a"); R(3, 9, 3, 1, "#7a5a3a"); R(10, 5, 2, 2, "#7a5a3a"); R(10, 7, 2, 3, "#7a5a3a"); R(9, 8, 4, 1, "#7a5a3a");
+    R(11, 0, 2, 5, "#c0303a"); R(5, 14, 6, 2, "#ffcf3a");
+  });
+}
+
+var DC = { coat:"#eceef2", coatD:"#b4b8c6", dark:"#2a2430", darkL:"#3e3646", shoe:"#140e12", hair:"#a8a6b0", hairD:"#64626e", hairL:"#e2e0e8", skin:"#d9a17e", skinD:"#b07a5a", gl:"#14141c" };
+// Dr Dissection, facing right. pose: stand | walk | raise | hold | laugh
+function docSpr(pose, f){
+  return bake(18, 34, function(R){
+    var L = pose === "walk" ? (f ? [7, 1, 10, -1] : [7, -2, 10, 2]) : [7, 0, 10, 0];
+    [[L[0], L[1], DC.dark], [L[2], L[3], DC.darkL]].forEach(function(l){
+      for (var i = 0; i <= 4; i++) R(l[0] + Math.round(l[1] * i / 4), 27 + i, 2, 1, l[2]);
+      R(l[0] + l[1], 31, 4, 2, DC.shoe);
+    });
+    R(3, 12, 11, 15, DC.coat); R(3, 12, 2, 15, DC.coatD); R(3, 26, 11, 1, DC.coatD);
+    R(10, 12, 3, 10, DC.dark); R(9, 12, 1, 8, DC.coatD); R(13, 12, 1, 14, DC.coat);
+    R(6, 13, 1, 2, "#3a6ad0"); R(7, 13, 1, 2, "#d04a2a");
+    R(8, 3, 6, 8, DC.skin); R(8, 9, 6, 2, DC.skinD); R(14, 6, 1, 2, DC.skin); R(9, 11, 3, 1, DC.skinD);
+    R(6, 0, 8, 3, DC.hair); R(5, 1, 3, 6, DC.hair); R(7, 0, 6, 1, DC.hairL); R(5, 3, 2, 3, DC.hairD); R(8, 3, 2, 1, DC.hair);
+    R(8, 5, 1, 2, DC.skinD);
+    if (pose === "laugh"){ R(10, 5, 4, 1, DC.gl); R(11, 6, 2, 1, DC.gl); R(11, 8, 3, 2, "#5a1a1a"); }
+    else { R(10, 5, 4, 1, DC.gl); R(10, 6, 1, 1, DC.gl); R(13, 6, 1, 1, DC.gl); R(11, 6, 2, 1, "#cfe6ff"); R(10, 4, 3, 1, DC.hairD); R(11, 9, 2, 1, "#7a3a3a"); R(13, 8, 1, 1, "#7a3a3a"); }
+    if (pose === "raise"){ R(13, 2, 2, 10, DC.coat); R(13, 0, 2, 2, DC.skin); R(2, 2, 2, 10, DC.coat); R(2, 0, 2, 2, DC.skin); }
+    else if (pose === "hold"){ R(12, 13, 2, 5, DC.coat); R(13, 17, 3, 2, DC.coat); R(15, 16, 2, 2, DC.skin); }
+    else if (pose === "laugh"){ R(12, 13, 2, 6, DC.coat); R(10, 18, 4, 2, DC.skin); }
+    else { R(12, 13, 2, 10, DC.coat); R(12, 23, 2, 2, DC.skin); }
+  });
+}
+function atlasSpr(){
+  return bake(14, 11, function(R){
+    R(0, 0, 14, 11, "#7a3a20"); R(1, 1, 12, 9, "#8f4a28"); R(0, 9, 14, 2, "#f3e2b3"); R(0, 10, 14, 1, "#c8b07a");
+    R(0, 0, 2, 2, "#d8a83a"); R(12, 0, 2, 2, "#d8a83a"); R(6, 2, 2, 2, "#d8a83a"); R(5, 4, 4, 1, "#d8a83a"); R(6, 5, 2, 2, "#d8a83a"); R(5, 7, 1, 1, "#d8a83a"); R(8, 7, 1, 1, "#d8a83a");
+  });
+}
+// the five lieutenants, as silhouettes with eyes that light up
+var LIEUT = [
+  { name:"The Bone Collector", eye:"#ffe08a", eyes:[[21, 13], [26, 13]] },
+  { name:"Flexor Rex", eye:"#ff6a3a", eyes:[[18, 15], [26, 15]] },
+  { name:"The Clot King", eye:"#ff2a4a", eyes:[[16, 34], [27, 34]] },
+  { name:"The Cerebral Menace", eye:"#b06aff", eyes:[[17, 26], [26, 26]] },
+  { name:"Lord Peristalsis", eye:"#7aff6a", eyes:[[24, 14], [29, 14]] }
+];
+function lieutSpr(i){
+  var c = mk(44, 58), x = c.getContext("2d"); x.fillStyle = "#120818"; x.strokeStyle = "#120818";
+  function E(cx, cy, rx, ry){ x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7); x.fill(); }
+  switch (i){
+    case 0: x.beginPath(); x.moveTo(13, 58); x.lineTo(31, 58); x.lineTo(28, 20); x.lineTo(19, 20); x.fill(); E(24, 14, 7, 8);
+      x.beginPath(); x.moveTo(17, 10); x.lineTo(24, 0); x.lineTo(31, 10); x.fill(); E(9, 30, 9, 11); x.lineWidth = 2; x.beginPath(); x.moveTo(38, 6); x.lineTo(38, 58); x.stroke(); E(38, 6, 4, 4); break;
+    case 1: E(22, 36, 15, 15); E(6, 32, 6, 11); E(38, 32, 6, 11); E(22, 17, 10, 8); x.fillRect(11, 46, 8, 12); x.fillRect(25, 46, 8, 12);
+      x.beginPath(); x.moveTo(14, 20); x.lineTo(34, 22); x.lineTo(30, 26); x.fill(); break;
+    case 2: E(22, 42, 19, 16); x.fillRect(8, 24, 28, 6); [[8, 14], [15, 18], [22, 12], [29, 18], [36, 14]].forEach(function(p){ x.beginPath(); x.moveTo(p[0] - 4, 26); x.lineTo(p[0], p[1]); x.lineTo(p[0] + 4, 26); x.fill(); }); break;
+    case 3: [[22, 18, 14], [12, 14, 8], [32, 14, 8], [16, 6, 7], [28, 6, 7], [22, 4, 6]].forEach(function(p){ E(p[0], p[1], p[2], p[2]); });
+      x.beginPath(); x.moveTo(14, 58); x.lineTo(30, 58); x.lineTo(26, 30); x.lineTo(18, 30); x.fill(); x.lineWidth = 2;
+      [[16, 34, 4, 48], [28, 34, 40, 48]].forEach(function(p){ x.beginPath(); x.moveTo(p[0], p[1]); x.quadraticCurveTo((p[0] + p[2]) / 2, p[1] + 2, p[2], p[3]); x.stroke(); }); break;
+    case 4: E(22, 52, 19, 6); E(20, 44, 16, 6); E(24, 36, 14, 6); E(21, 28, 10, 6); E(26, 16, 8, 7); x.fillRect(21, 0, 10, 9); x.fillRect(17, 8, 18, 2); break;
+  }
+  crisp(c);
+  // purple rim light so the silhouettes read against the dark floor
+  var d = x.getImageData(0, 0, 44, 58), a = d.data, op = new Uint8Array(44 * 58), k;
+  for (k = 0; k < op.length; k++) op[k] = a[k * 4 + 3] ? 1 : 0;
+  for (k = 0; k < op.length; k++){
+    if (!op[k]) continue; var px = k % 44;
+    if ((px > 0 && !op[k - 1]) || k < 44 || !op[k - 44]){ a[k * 4] = 92; a[k * 4 + 1] = 58; a[k * 4 + 2] = 128; }
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+
+var SPR = {};
+function buildSprites(){
+  SPR.doc = { stand:docSpr("stand"), walk:[docSpr("walk", 0), docSpr("walk", 1)], raise:docSpr("raise"), hold:docSpr("hold"), laugh:docSpr("laugh") };
+  SPR.atlas = atlasSpr(); SPR.lieut = LIEUT.map(function(l, i){ return lieutSpr(i); });
+  SPR.stand = [heroSpr("stand", 0), heroSpr("stand", 1)];
+  SPR.run = [0, 1, 2, 3].map(function(f){ return heroSpr("run", f); });
+  SPR.jump = heroSpr("jump"); SPR.fall = heroSpr("fall"); SPR.hurt = heroSpr("hurt");
+  SPR.climb = [heroSpr("climb", 0), heroSpr("climb", 1)]; SPR.roll = heroSpr("roll");
+  SPR.crab = [crabSpr(0), crabSpr(1)]; SPR.bat = [batSpr(0), batSpr(1)]; SPR.spiky = [spikySpr(0), spikySpr(1)];
+  SPR.token = tokenSpr(); SPR.page = pageSpr(); SPR.lbOff = lightboxSpr(false); SPR.lbOn = lightboxSpr(true); SPR.plinth = plinthSpr();
+  SPR.pDoc = portraitDoc(); SPR.pHero = portraitHero();
+  SPR.mPick = markPick(); SPR.mAtlas = markAtlas();
+}
+
+/* ======================================================================
+   LEVEL: World 1 Bone Island, Level 1 "Welcome to the Jungle"
+   tiles: 0 air, 1 ground, 2 one-way log, 3 vine, 5 bone bridge (solid once rebuilt)
+   ====================================================================== */
+var LV = { cols:172, rows:14, g:null, ents:[], name:"Welcome to the Jungle", world:"Bone Island" };
+function lvSet(x, y, v){ if (x >= 0 && x < LV.cols && y >= 0 && y < LV.rows) LV.g[y * LV.cols + x] = v; }
+function buildLevel(){
+  LV.g = new Uint8Array(LV.cols * LV.rows); LV.ents = [];
+  function G(x0, x1, h){ for (var x = x0; x <= x1; x++) for (var y = 14 - h; y < 14; y++) lvSet(x, y, 1); }
+  function plat(x, y, n){ for (var i = 0; i < n; i++) lvSet(x + i, y, 2); }
+  function vine(x, y0, y1){ for (var y = y0; y <= y1; y++) lvSet(x, y, 3); }
+  function E(kind, tx, ty, o){ var e = { kind:kind, x:tx * T + 8, y:ty * T + 16, alive:true, home:tx * T + 8, dir:-1, t:Math.random() * 6 }; for (var k in o || {}) e[k] = o[k]; LV.ents.push(e); return e; }
+  function tok(x0, x1, row){ for (var x = x0; x <= x1; x++) E("tok", x, row); }
+  function arc(x0, x1, row){ var n = x1 - x0; for (var x = x0; x <= x1; x++){ var k = (x - x0) / n; E("tok", x, row, { y:row * T + 16 - Math.sin(k * Math.PI) * 26 }); } }
+
+  // 1. landing beach
+  G(0, 23, 3); tok(8, 13, 9); E("crab", 17, 10);
+  // 2. first pit
+  arc(23, 27, 8);
+  G(27, 34, 3); G(35, 44, 5); plat(29, 7, 3); tok(29, 31, 6); E("crab", 41, 8);
+  // 3. log over a gap
+  plat(46, 8, 2); tok(46, 47, 7);
+  // 4. the vine tree, with a hidden Atlas page on the canopy
+  G(49, 72, 3); E("bat", 55, 7, { x0:52 * T, x1:60 * T });
+  vine(62, 1, 10); tok(62, 62, 6); tok(62, 62, 4);
+  plat(63, 4, 6); tok(64, 66, 3); E("page", 68, 3, { id:"p1" });
+  E("spiky", 70, 10);
+  // 5. the broken bone bridge
+  G(73, 80, 3); E("plinth", 78, 10, { puzzle:"femur" });
+  for (var x = 81; x <= 92; x++) lvSet(x, 11, 5);
+  LV.bx0 = 81; LV.bn = 12; tok(84, 89, 9);
+  G(93, 104, 3); E("cp", 96, 10);
+  // 6. vine crossing over the abyss
+  vine(108, 0, 8); vine(112, 0, 7); vine(116, 0, 8);
+  tok(110, 110, 3); tok(114, 114, 3); E("bat", 112, 10, { x0:109 * T, x1:115 * T });
+  // 7. hills and logs
+  G(120, 140, 3); G(126, 131, 5); E("crab", 124, 10); plat(133, 7, 3); plat(137, 5, 3); tok(133, 135, 6); tok(137, 139, 4);
+  E("bat", 130, 4, { x0:127 * T, x1:136 * T }); E("crab", 135, 10);
+  // 8. last gap
+  plat(143, 9, 2); arc(141, 146, 8);
+  // 9. the finish, with the second page up high
+  G(147, 171, 3); E("spiky", 152, 10); plat(151, 8, 2); plat(155, 5, 3); E("page", 156, 4, { id:"p2" }); tok(151, 152, 7);
+  E("crab", 159, 10); tok(158, 162, 9);
+  LV.exitX = 165 * T + 8; LV.start = { x:3 * T, y:11 * T };
+  LV.totalTok = LV.ents.filter(function(e){ return e.kind === "tok"; }).length;
+}
+function tileAt(tx, ty){
+  if (tx < 0 || tx >= LV.cols) return 1;
+  if (ty < 0 || ty >= LV.rows) return 0;
+  var v = LV.g[ty * LV.cols + tx];
+  if (v === 5) return tx - LV.bx0 < S.bridgeN ? 5 : 0;
+  return v;
+}
+function solidAt(tx, ty){ return tileAt(tx, ty) === 1; }
+function topAt(tx, ty){ var v = tileAt(tx, ty); return v === 2 || v === 5; }
+
+/* ======================================================================
+   ART: parallax backdrop + pre-rendered level
+   ====================================================================== */
+var BG = {}, LVC = null;
+function buildBackdrop(){
+  var rnd = mulberry(7);
+  // sky
+  var s = mk(W, H), x = s.getContext("2d"), bands = ["#1d5a86", "#2a6f96", "#3a86a4", "#55a2b0", "#79bbb4", "#a6d0b0", "#d6dca2", "#f4d98e"];
+  bands.forEach(function(c, i){ x.fillStyle = c; x.fillRect(0, i * 18, W, 18); });
+  x.fillStyle = "#f4d98e"; x.fillRect(0, 144, W, 80);
+  x.fillStyle = "#fff4c0"; x.beginPath(); x.arc(196, 74, 16, 0, 7); x.fill();
+  x.fillStyle = "rgba(255,244,192,.35)"; x.beginPath(); x.arc(196, 74, 22, 0, 7); x.fill();
+  [[30, 40, 1], [120, 26, 1.3], [220, 120, .8], [70, 100, .9]].forEach(function(c){
+    x.fillStyle = "#e8f4f0"; for (var i = 0; i < 6; i++){ x.beginPath(); x.arc(c[0] + i * 7 * c[2], c[1] + (i % 2 ? -3 : 0) * c[2], (6 + (i % 3) * 2) * c[2], 0, 7); x.fill(); }
+    x.fillStyle = "#c8e0e0"; x.fillRect(c[0] - 6 * c[2], c[1] + 3 * c[2], 46 * c[2], 3);
+  });
+  BG.sky = crisp(s);
+  // far: islands with a skull mountain
+  var f = mk(640, H); x = f.getContext("2d");
+  x.fillStyle = "#5f9e94";
+  x.beginPath(); x.moveTo(0, 170);
+  for (var px = 0; px <= 640; px += 8) x.lineTo(px, 150 - Math.sin(px / 60) * 14 - Math.sin(px / 23) * 5);
+  x.lineTo(640, H); x.lineTo(0, H); x.fill();
+  // skull mountain
+  x.fillStyle = "#7fb4a8"; x.beginPath(); x.ellipse(330, 118, 62, 52, 0, Math.PI, 0); x.fill(); x.fillRect(282, 116, 96, 34); x.fillRect(296, 146, 68, 12);
+  x.fillStyle = "#4a8078"; x.beginPath(); x.ellipse(308, 118, 13, 11, 0, 0, 7); x.fill(); x.beginPath(); x.ellipse(352, 118, 13, 11, 0, 0, 7); x.fill();
+  x.beginPath(); x.moveTo(330, 128); x.lineTo(324, 140); x.lineTo(336, 140); x.fill();
+  for (var t = 0; t < 6; t++) x.fillRect(300 + t * 11, 150, 6, 7);
+  x.fillStyle = "#5f9e94"; x.fillRect(250, 156, 160, 70);
+  // volcano
+  x.fillStyle = "#6aa89c"; x.beginPath(); x.moveTo(500, 160); x.lineTo(552, 96); x.lineTo(568, 96); x.lineTo(620, 160); x.fill();
+  BG.far = crisp(f);
+  // mid: jungle canopy, palms and a giant ribcage
+  var m = mk(512, H); x = m.getContext("2d");
+  x.fillStyle = "#2f7050";
+  for (px = -10; px < 530; px += 14){ var r = 14 + rnd() * 12; x.beginPath(); x.arc(px, 160 - rnd() * 18, r, 0, 7); x.fill(); }
+  x.fillRect(0, 160, 512, 64);
+  // ribcage
+  x.strokeStyle = "#cfc8a8"; x.lineWidth = 5; x.lineCap = "round";
+  x.beginPath(); x.moveTo(250, 92); x.lineTo(400, 98); x.stroke();
+  for (var k = 0; k < 6; k++){ var rx = 264 + k * 26; x.beginPath(); x.moveTo(rx, 94 + k); x.quadraticCurveTo(rx - 34, 120, rx - 12 + k * 2, 168); x.stroke(); }
+  x.fillStyle = "#cfc8a8"; x.beginPath(); x.ellipse(242, 90, 14, 11, 0, 0, 7); x.fill();
+  x.fillStyle = "#2f7050"; x.beginPath(); x.ellipse(238, 88, 4, 4, 0, 0, 7); x.fill();
+  // palms
+  function palm(bx, by, hgt, lean){
+    x.strokeStyle = "#5a4a30"; x.lineWidth = 5; x.beginPath(); x.moveTo(bx, by); x.quadraticCurveTo(bx + lean * .3, by - hgt * .6, bx + lean, by - hgt); x.stroke();
+    x.strokeStyle = "#2f8a4a"; x.lineWidth = 4;
+    for (var a = 0; a < 6; a++){ var ang = -Math.PI + a * Math.PI / 5; x.beginPath(); x.moveTo(bx + lean, by - hgt);
+      x.quadraticCurveTo(bx + lean + Math.cos(ang) * 18, by - hgt - 10 + Math.sin(ang) * 6, bx + lean + Math.cos(ang) * 30, by - hgt + 8); x.stroke(); }
+  }
+  palm(60, 170, 76, 12); palm(150, 172, 60, -10); palm(460, 170, 82, 8);
+  BG.mid = crisp(m);
+  // near: dark undergrowth (shows down the pits)
+  var n = mk(384, H); x = n.getContext("2d");
+  x.fillStyle = "#17402c";
+  for (px = -8; px < 400; px += 10){ x.beginPath(); x.arc(px, 196 - rnd() * 16, 10 + rnd() * 8, 0, 7); x.fill(); }
+  x.fillRect(0, 196, 384, 28);
+  x.fillStyle = "#0e2a1c"; x.fillRect(0, 212, 384, 12);
+  BG.near = crisp(n);
+  // canopy fringe drawn in front at the top of the screen
+  var c = mk(320, 22); x = c.getContext("2d"); x.fillStyle = "#123a24";
+  for (px = 0; px < 330; px += 9){ x.beginPath(); x.ellipse(px, 0, 7, 8 + rnd() * 10, 0, 0, 7); x.fill(); }
+  x.fillStyle = "#1c5234"; for (px = 4; px < 330; px += 23){ x.fillRect(px, 0, 2, 10 + rnd() * 10); }
+  BG.canopy = crisp(c);
+}
+function bricks(x, col, mortar, hi, y0, y1, rnd){
+  x.fillStyle = col; x.fillRect(0, y0, W, y1 - y0);
+  for (var y = y0, r = 0; y < y1; y += 8, r++){
+    x.fillStyle = mortar; x.fillRect(0, y + 7, W, 1);
+    for (var bx = (r % 2) * 8 - 8; bx < W; bx += 16){ x.fillStyle = mortar; x.fillRect(bx, y, 1, 8); if (rnd() < .5){ x.fillStyle = hi; x.fillRect(bx + 1, y, 15, 1); } }
+  }
+}
+function buildCutArt(){
+  var rnd = mulberry(5);
+  // Temple of Anatomia
+  var c = mk(W, H), x = c.getContext("2d");
+  bricks(x, "#3e4a44", "#28322e", "#4e5c54", 0, 176, rnd);
+  for (var i = 0; i < 14; i++){ x.fillStyle = "#3f6a3a"; x.fillRect(Math.floor(rnd() * W), Math.floor(rnd() * 170), 6 + Math.floor(rnd() * 8), 3); }
+  x.fillStyle = "#1a2a4a"; x.beginPath(); x.arc(128, 66, 26, Math.PI, 0); x.fill(); x.fillRect(102, 66, 52, 34);
+  for (i = 0; i < 12; i++){ x.fillStyle = "#cfe0ff"; x.fillRect(104 + Math.floor(rnd() * 48), 44 + Math.floor(rnd() * 52), 1, 1); }
+  x.fillStyle = "#f0f0d8"; x.beginPath(); x.arc(138, 60, 9, 0, 7); x.fill(); x.fillStyle = "#1a2a4a"; x.beginPath(); x.arc(134, 57, 8, 0, 7); x.fill();
+  x.strokeStyle = "#7a8a80"; x.lineWidth = 4; x.beginPath(); x.arc(128, 66, 28, Math.PI, 0); x.stroke(); x.fillStyle = "#7a8a80"; x.fillRect(98, 66, 4, 36); x.fillRect(154, 66, 4, 36); x.fillRect(96, 100, 64, 4);
+  [24, 212].forEach(function(px){
+    x.fillStyle = "#6a7a70"; x.fillRect(px, 28, 20, 148); x.fillStyle = "#56645c"; for (var k = 3; k < 20; k += 5) x.fillRect(px + k, 34, 1, 136);
+    x.fillStyle = "#8a9a90"; x.fillRect(px - 4, 22, 28, 8); x.fillRect(px - 4, 168, 28, 8); x.fillStyle = "#56645c"; x.fillRect(px - 4, 29, 28, 1);
+  });
+  x.fillStyle = "#4a5650"; x.fillRect(0, 176, W, 48); x.fillStyle = "#3a4440"; for (i = 0; i < W; i += 24) x.fillRect(i, 176, 1, 48); x.fillRect(0, 176, W, 2); x.fillRect(0, 198, W, 1);
+  x.fillStyle = "#7a8a80"; x.fillRect(146, 156, 28, 20); x.fillRect(142, 150, 36, 6); x.fillRect(140, 172, 40, 4);
+  x.fillStyle = "#d8ceb0"; x.fillRect(156, 160, 8, 7); x.fillStyle = "#3a3028"; x.fillRect(157, 162, 2, 2); x.fillRect(161, 162, 2, 2);
+  x.fillStyle = "#2e7a26"; for (i = 0; i < 7; i++){ var vx = 8 + Math.floor(rnd() * 240), vl = 10 + Math.floor(rnd() * 26); x.fillRect(vx, 0, 2, vl); x.fillStyle = "#4caf3a"; x.fillRect(vx - 2, vl - 3, 3, 2); x.fillStyle = "#2e7a26"; }
+  BG.temple = c;
+  // Dr Dissection's lair
+  c = mk(W, H); x = c.getContext("2d");
+  bricks(x, "#24162e", "#160c1e", "#2e1e3a", 0, 176, rnd);
+  x.fillStyle = "#3a0f1a"; x.beginPath(); x.arc(128, 62, 34, 0, 7); x.fill();
+  x.fillStyle = "#c0303a"; x.beginPath(); x.arc(140, 52, 13, 0, 7); x.fill();
+  x.strokeStyle = "#4a3458"; x.lineWidth = 4; x.beginPath(); x.arc(128, 62, 35, 0, 7); x.stroke(); x.lineWidth = 2; x.beginPath(); x.moveTo(93, 62); x.lineTo(163, 62); x.moveTo(128, 27); x.lineTo(128, 97); x.stroke();
+  [[6, 80], [190, 80], [6, 122], [190, 122]].forEach(function(s, k){
+    x.fillStyle = "#4a3020"; x.fillRect(s[0], s[1], 60, 4);
+    for (var j = 0; j < 3; j++){ var jx = s[0] + 6 + j * 19; x.fillStyle = "rgba(120,200,190,.35)"; x.fillRect(jx, s[1] - 18, 12, 18); x.fillStyle = "#4a5a5a"; x.fillRect(jx - 1, s[1] - 20, 14, 3);
+      x.fillStyle = ["#c0303a", "#e88aa0", "#7aa040", "#d8ceb0"][(k + j) % 4]; x.beginPath(); x.ellipse(jx + 6, s[1] - 8, 4, 4, 0, 0, 7); x.fill(); }
+  });
+  x.fillStyle = "#1a1020"; x.fillRect(0, 176, W, 48); x.fillStyle = "#120a18"; for (i = 0; i < W; i += 24) x.fillRect(i, 176, 1, 48);
+  x.fillStyle = "#3a2a44"; x.fillRect(92, 150, 72, 26); x.fillStyle = "#4a3a58"; x.fillRect(92, 150, 72, 2); x.fillRect(84, 164, 88, 12); x.fillStyle = "#5a4a68"; x.fillRect(84, 164, 88, 1);
+  BG.lair = crisp(c);
+}
+function buildLevelArt(){
+  var rnd = mulberry(42), c = mk(LV.cols * T, H), x = c.getContext("2d");
+  function P(px, py, w, h, col){ x.fillStyle = col; x.fillRect(px, py, w, h); }
+  for (var ty = 0; ty < LV.rows; ty++) for (var tx = 0; tx < LV.cols; tx++){
+    var v = LV.g[ty * LV.cols + tx], X = tx * T, Y = ty * T;
+    if (v === 1){
+      var top = !solidAt(tx, ty - 1) && ty > 0, depth = 0;
+      for (var d = ty - 1; d >= 0 && solidAt(tx, d); d--) depth++;
+      var base = ["#8a5530", "#7a4a2a", "#6a4024", "#5a361e"][Math.min(3, depth)];
+      P(X, Y, T, T, base);
+      for (var i = 0; i < 6; i++) P(X + Math.floor(rnd() * 15), Y + Math.floor(rnd() * 15), 2, 1, rnd() < .5 ? "#5e3a1e" : "#a06a3c");
+      if (rnd() < .22 && depth >= 1){ var fx = X + 3 + Math.floor(rnd() * 6), fy = Y + 5 + Math.floor(rnd() * 6);
+        P(fx, fy, 2, 3, BONE); P(fx + 6, fy, 2, 3, BONE); P(fx + 1, fy + 1, 6, 1, BONE); P(fx + 1, fy + 2, 6, 1, BONED); }
+      if (rnd() < .18){ var rx = X + Math.floor(rnd() * 10), ry = Y + 6 + Math.floor(rnd() * 6); P(rx, ry, 5, 3, "#8f887a"); P(rx, ry, 5, 1, "#b0a898"); }
+      if (!solidAt(tx - 1, ty) && tx > 0) P(X, Y, 2, T, "#4a2c16");
+      if (!solidAt(tx + 1, ty) && tx < LV.cols - 1) P(X + 14, Y, 2, T, "#4a2c16");
+      if (top){
+        P(X, Y, T, 5, "#4caf3a"); P(X, Y + 5, T, 1, "#2e7a26"); P(X, Y + 6, T, 1, "#5e3a1e");
+        for (i = 0; i < 4; i++){ var gx = X + Math.floor(rnd() * 15); P(gx, Y - 2, 1, 3, "#4caf3a"); P(gx, Y + 1, 1, 1, "#8ee060"); }
+        P(X, Y, T, 1, "#8ee060");
+        if (!solidAt(tx - 1, ty)) { P(X, Y + 5, 2, 3, "#4caf3a"); }
+        if (!solidAt(tx + 1, ty)) { P(X + 14, Y + 5, 2, 3, "#4caf3a"); }
+      }
+    } else if (v === 2){
+      P(X, Y + 1, T, 6, "#9a6232"); P(X, Y + 1, T, 1, "#c88a4a"); P(X, Y + 6, T, 1, "#5e3a1e"); P(X + 3 + (tx % 3) * 3, Y + 3, 4, 1, "#7a4a24");
+      if (tileAt(tx - 1, ty) !== 2){ P(X, Y, 4, 8, "#7a4a24"); P(X + 1, Y + 2, 2, 3, "#c88a4a"); }
+      if (tileAt(tx + 1, ty) !== 2){ P(X + 12, Y, 4, 8, "#7a4a24"); P(X + 13, Y + 2, 2, 3, "#c88a4a"); }
+    } else if (v === 3){
+      for (var yy = 0; yy < T; yy++){ var wx = X + 7 + Math.round(Math.sin((Y + yy) / 5) * 1); P(wx, Y + yy, 2, 1, "#3a8a2a"); P(wx, Y + yy, 1, 1, "#6cc04a"); }
+      P(X + 4, Y + 4, 3, 2, "#4caf3a"); P(X + 10, Y + 11, 3, 2, "#4caf3a");
+      if (LV.g[(ty + 1) * LV.cols + tx] !== 3){ P(X + 6, Y + 14, 4, 2, "#3a8a2a"); }
+    }
+  }
+  // undergrowth decorations on the grass
+  var rs = mulberry(9);
+  for (var tx2 = 0; tx2 < LV.cols; tx2++){
+    for (var ty2 = 1; ty2 < LV.rows; ty2++){
+      if (!solidAt(tx2, ty2) || solidAt(tx2, ty2 - 1)) continue;
+      var gy = ty2 * T, gx2 = tx2 * T, roll = rs();
+      if (roll < .14){ // fern bush
+        x.fillStyle = "#2e8a3a"; x.beginPath(); x.ellipse(gx2 + 8, gy, 9, 6, 0, Math.PI, 0); x.fill();
+        x.fillStyle = "#4caf3a"; x.beginPath(); x.ellipse(gx2 + 6, gy - 2, 5, 3, 0, Math.PI, 0); x.fill();
+      } else if (roll < .19){ // skull rock
+        P(gx2 + 3, gy - 8, 10, 8, "#d8ceb0"); P(gx2 + 4, gy - 9, 8, 1, "#d8ceb0"); P(gx2 + 5, gy - 6, 2, 2, "#3a3028"); P(gx2 + 9, gy - 6, 2, 2, "#3a3028");
+        P(gx2 + 7, gy - 3, 2, 1, "#3a3028"); P(gx2 + 4, gy - 9, 4, 1, "#fff8e6");
+      } else if (roll < .23){ // flower
+        P(gx2 + 7, gy - 5, 1, 5, "#2e7a26"); P(gx2 + 5, gy - 7, 5, 3, "#ff6a8a"); P(gx2 + 7, gy - 6, 1, 1, "#ffe06a");
+      }
+      break;
+    }
+  }
+  // start sign
+  P(2 * T + 7, 9 * T + 6, 2, 26, "#6a4024"); P(2 * T, 9 * T + 2, 18, 9, "#9a6232"); P(2 * T, 9 * T + 2, 18, 1, "#c88a4a");
+  P(2 * T + 4, 9 * T + 6, 8, 1, "#3a2010"); P(2 * T + 10, 9 * T + 5, 1, 3, "#3a2010"); P(2 * T + 11, 9 * T + 6, 1, 1, "#3a2010");
+  // exit hut
+  var hx = 163 * T + 8, hy = 11 * T;
+  P(hx, hy - 34, 48, 34, "#8a5a2c"); for (i = 0; i < 6; i++) P(hx + i * 8, hy - 34, 1, 34, "#6a4020");
+  P(hx + 16, hy - 24, 16, 24, "#1a0e08"); P(hx + 18, hy - 22, 12, 22, "#2a1a0e"); P(hx + 14, hy - 26, 20, 2, "#c88a4a");
+  x.fillStyle = "#d8b25a"; x.beginPath(); x.moveTo(hx - 8, hy - 32); x.lineTo(hx + 24, hy - 60); x.lineTo(hx + 56, hy - 32); x.fill();
+  x.fillStyle = "#b08a3a"; for (i = 0; i < 9; i++){ x.fillRect(hx - 6 + i * 7, hy - 34, 2, 4); }
+  P(hx + 18, hy - 52, 12, 10, "#f3e2b3"); P(hx + 23, hy - 50, 2, 6, "#7a5a3a"); P(hx + 20, hy - 48, 8, 1, "#7a5a3a");
+  P(hx - 2, hy - 8, 6, 8, "#d8ceb0"); P(hx + 44, hy - 8, 6, 8, "#d8ceb0"); P(hx - 1, hy - 6, 1, 2, "#3a3028"); P(hx + 2, hy - 6, 1, 2, "#3a3028"); P(hx + 45, hy - 6, 1, 2, "#3a3028"); P(hx + 48, hy - 6, 1, 2, "#3a3028");
+  // bridge posts either side of the gap
+  [[80 * T + 10, 1], [93 * T, -1]].forEach(function(b){ P(b[0], 9 * T + 4, 4, 28, "#6a4024"); P(b[0], 9 * T + 4, 4, 2, "#c88a4a"); });
+  LVC = crisp(c);
+}
+
+/* ======================================================================
+   STATE
+   ====================================================================== */
+var S = { mode:"title", t:0, fade:1, fadeTo:1, fadeRes:null, cam:0, tokens:0, pages:{}, hearts:3, kos:0, time:0, cp:null,
+  bridgeN:0, bridgeT:-1, portal:0, bridgeTries:0, unlocked:load("markers", {}), parts:[], waiters:[], dlg:null, hintT:"", bannerT:0, koT:0, exitT:0 };
+var P = {};
+function resetPlayer(at){
+  P = { x:at.x, y:at.y, vx:0, vy:0, w:10, face:1, ground:false, climb:false, roll:0, rollCD:0, rollJump:false, coy:0, jbuf:0, rbuf:0,
+    inv:0, grabCD:0, anim:0, rollAng:0, ko:false, prevBottom:at.y };
+}
+var KEY = {}, PRESS = {}, PAD = {};
+function held(k){ return !!(KEY[k] || PAD[k]); }
+function pressed(k){ if (PRESS[k]){ PRESS[k] = false; return true; } return false; }
+
+var GRAV = 900, MAXF = 380, RUN = 96, ROLLV = 185, JUMPV = 305, CLIMBV = 62;
+
+/* ======================================================================
+   UPDATE
+   ====================================================================== */
+function update(dt){
+  S.t += dt;
+  if (S.mode === "play" || S.mode === "ko" || S.mode === "exit"){
+    var n = Math.max(1, Math.ceil(dt * 120)), h = dt / n;
+    for (var i = 0; i < n; i++){ if (S.mode === "play") step(h); else if (S.mode === "ko") koStep(h); else exitStep(h); }
+  }
+  if (S.mode === "cut") cutStep(dt);
+  if (S.mode === "arrive"){ arriveStep(dt); }
+  if (S.bridgeT >= 0){
+    S.bridgeT += dt; var want = Math.min(LV.bn, Math.floor(S.bridgeT / .09));
+    while (S.bridgeN < want){ S.bridgeN++; SFX.play("plank"); var bx = (LV.bx0 + S.bridgeN - 1) * T + 8; for (var k = 0; k < 4; k++) puff(bx, 11 * T, BONE); }
+    if (S.bridgeN >= LV.bn) S.bridgeT = -1;
+  }
+  for (var j = S.parts.length - 1; j >= 0; j--){ var p = S.parts[j]; p.life -= dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 0) * dt; if (p.life <= 0) S.parts.splice(j, 1); }
+  if (S.bannerT > 0){ S.bannerT -= dt; if (S.bannerT <= 0) $("banner").classList.remove("on"); }
+  // camera
+  if (P.x !== undefined){
+    var target = clamp(P.x - W / 2 + P.face * 20, 0, LV.cols * T - W);
+    S.cam += (target - S.cam) * Math.min(1, dt * 5);
+  }
+  // fade
+  if (S.fade !== S.fadeTo){ S.fade = approach(S.fade, S.fadeTo, dt * 3.2); if (S.fade === S.fadeTo && S.fadeRes){ var r = S.fadeRes; S.fadeRes = null; r(); } }
+  for (var w = S.waiters.length - 1; w >= 0; w--) if (S.waiters[w].fn()){ var wr = S.waiters[w].res; S.waiters.splice(w, 1); wr(); }
+  if (S.dlg) dlgTick(dt);
+}
+function fade(v){ return new Promise(function(res){ S.fadeTo = v; if (S.fade === v) res(); else S.fadeRes = res; }); }
+function waitFor(fn){ return new Promise(function(res){ S.waiters.push({ fn:fn, res:res }); }); }
+function after(secs){ var t0 = S.t; return waitFor(function(){ return S.t - t0 >= secs; }); }
+
+function step(dt){
+  S.time += dt;
+  var L = held("left"), Rt = held("right"), U = held("up"), D = held("down"), dir = (Rt ? 1 : 0) - (L ? 1 : 0);
+  if (P.inv > 0) P.inv -= dt;
+  if (P.grabCD > 0) P.grabCD -= dt;
+  if (P.rollCD > 0) P.rollCD -= dt;
+  P.jbuf = pressed("jump") ? .12 : Math.max(0, P.jbuf - dt);
+  P.rbuf = pressed("roll") ? .1 : Math.max(0, P.rbuf - dt);
+  var upTap = pressed("up");
+  P.prevBottom = P.y;
+
+  if (P.climb){ climbStep(dt, dir, U, D); afterMove(dt); return; }
+
+  // horizontal
+  if (P.roll > 0){
+    P.roll -= dt; P.rollAng += P.face * dt * 18;
+    P.vx = P.face * ROLLV * (P.roll > .1 ? 1 : .55 + P.roll * 4.5);
+    if (P.roll <= 0){ P.roll = 0; P.rollAng = 0; }
+  } else {
+    if (dir) P.face = dir;
+    if (!P.ground && dir && dir === Math.sign(P.vx) && Math.abs(P.vx) > RUN){ /* keep roll-jump momentum */ }
+    else P.vx = approach(P.vx, dir * RUN, (P.ground ? (dir ? 900 : 1300) : (dir ? 650 : 220)) * dt);
+  }
+  if (P.rbuf > 0 && P.roll <= 0 && P.ground && P.rollCD <= 0){
+    P.roll = .42; P.rbuf = 0; P.rollCD = .2; P.rollJump = true; if (dir) P.face = dir; SFX.play("roll");
+    for (var i = 0; i < 4; i++) puff(P.x - P.face * 4, P.y, "#d8c8a0");
+  }
+  // jump
+  P.coy = P.ground ? .09 : Math.max(0, P.coy - dt);
+  if (P.jbuf > 0 && (P.coy > 0 || (P.roll > 0 && P.rollJump))){
+    if (P.roll > 0){ P.vx = P.face * 165; P.roll = 0; P.rollAng = 0; P.rollJump = false; }
+    P.vy = -JUMPV; P.jbuf = 0; P.coy = 0; P.ground = false; SFX.play("jump");
+  }
+  // gravity
+  var g = GRAV; if (P.vy < 0 && !held("jump")) g *= 2.4;
+  P.vy = Math.min(MAXF, P.vy + g * dt);
+  moveX(dt); moveY(dt);
+  // grab a vine
+  var vtx = Math.floor(P.x / T);
+  if (P.grabCD <= 0 && tileAt(vtx, Math.floor((P.y - 16) / T)) === 3 && (!P.ground || upTap || U) && Math.abs(P.x - (vtx * T + 8)) < 6){
+    P.climb = true; P.roll = 0; P.rollAng = 0; P.vx = 0; P.vy = 0; P.x = vtx * T + 8; P.ground = false;
+  }
+  // read a plinth
+  if (upTap || (U && P.ground)) tryPlinth();
+  afterMove(dt);
+}
+function climbStep(dt, dir, U, D){
+  var tx = Math.floor(P.x / T), dy = (D ? 1 : 0) - (U ? 1 : 0), ny = P.y + dy * CLIMBV * dt;
+  if (dy < 0 && tileAt(tx, Math.floor((ny - 22) / T)) !== 3) ny = P.y;
+  P.y = ny; P.anim += Math.abs(dy) * dt * 6;
+  if (dir) P.face = dir;
+  if (dy > 0 && (solidAt(tx, Math.floor(P.y / T)) || topAt(tx, Math.floor(P.y / T)))){ P.y = Math.floor(P.y / T) * T; P.climb = false; P.ground = true; P.grabCD = .3; return; }
+  if (tileAt(tx, Math.floor((P.y - 12) / T)) !== 3){ P.climb = false; P.grabCD = .3; return; }
+  if (P.jbuf > 0){ P.climb = false; P.jbuf = 0; P.vy = -265; P.vx = dir * 125; P.grabCD = .3; SFX.play("jump"); }
+}
+function ph(){ return P.roll > 0 ? 14 : 22; }
+function moveX(dt){
+  P.x += P.vx * dt;
+  var l = P.x - P.w / 2, r = P.x + P.w / 2, t = P.y - ph(), b = P.y - .01, tx, ty;
+  if (P.vx > 0){ tx = Math.floor(r / T); for (ty = Math.floor(t / T); ty <= Math.floor(b / T); ty++) if (solidAt(tx, ty)){ P.x = tx * T - P.w / 2 - .01; P.vx = 0; break; } }
+  else if (P.vx < 0){ tx = Math.floor(l / T); for (ty = Math.floor(t / T); ty <= Math.floor(b / T); ty++) if (solidAt(tx, ty)){ P.x = (tx + 1) * T + P.w / 2 + .01; P.vx = 0; break; } }
+  P.x = clamp(P.x, 6, LV.cols * T - 6);
+}
+function moveY(dt){
+  var oldB = P.y, wasGround = P.ground;
+  P.y += P.vy * dt; P.ground = false;
+  var l = P.x - P.w / 2 + .5, r = P.x + P.w / 2 - .5, tx;
+  if (P.vy >= 0){
+    var ty = Math.floor(P.y / T);
+    for (tx = Math.floor(l / T); tx <= Math.floor(r / T); tx++){
+      if (solidAt(tx, ty) || (topAt(tx, ty) && oldB <= ty * T + .5)){
+        P.y = ty * T; P.vy = 0; P.ground = true;
+        if (!wasGround){ P.rollJump = P.roll > 0; for (var i = 0; i < 3; i++) puff(P.x, P.y, "#d8c8a0"); }
+        break;
+      }
+    }
+  } else {
+    var ty2 = Math.floor((P.y - ph()) / T);
+    for (tx = Math.floor(l / T); tx <= Math.floor(r / T); tx++) if (solidAt(tx, ty2)){ P.y = (ty2 + 1) * T + ph(); P.vy = 0; break; }
+  }
+}
+function overlap(e, ew, eh){
+  return Math.abs(P.x - e.x) < (P.w + ew) / 2 && P.y > e.y - eh && P.y - ph() < e.y;
+}
+function afterMove(dt){
+  // enemies + pickups
+  LV.ents.forEach(function(e){
+    if (!e.alive){ if (e.dead){ e.dvy += GRAV * dt; e.y += e.dvy * dt; e.x += e.dvx * dt; } return; }
+    e.t += dt;
+    if (e.kind === "crab" || e.kind === "spiky"){
+      var sp = e.kind === "crab" ? 26 : 16;
+      var ahead = Math.floor((e.x + e.dir * 8) / T), row = Math.floor(e.y / T);
+      if (solidAt(ahead, row - 1) || !(solidAt(ahead, row) || topAt(ahead, row))) e.dir *= -1;
+      e.x += e.dir * sp * dt;
+    } else if (e.kind === "bat"){
+      e.x += e.dir * 30 * dt; if (e.x < e.x0 + 8){ e.x = e.x0 + 8; e.dir = 1; } if (e.x > e.x1 + 8){ e.x = e.x1 + 8; e.dir = -1; }
+      e.y = e.home0 === undefined ? (e.home0 = e.y) : e.y; e.y = e.home0 + Math.sin(e.t * 2.4) * 12;
+    }
+    if (P.climb && e.kind !== "tok" && e.kind !== "page" && e.kind !== "cp" && e.kind !== "plinth"){ if (overlap(e, 12, 9)) hurt(e.x); return; }
+    switch (e.kind){
+      case "tok":
+        if (overlap(e, 10, 10)){ e.alive = false; S.tokens++; SFX.play("token"); spark(e.x, e.y - 5); hud(); }
+        break;
+      case "page":
+        if (overlap(e, 12, 16)){ e.alive = false; S.pages[e.id] = true; SFX.play("page"); for (var i = 0; i < 12; i++) spark(e.x, e.y - 8); banner("ATLAS PAGE!", Object.keys(S.pages).length + " of 2 found"); hud(); say_live("Atlas page found"); }
+        break;
+      case "cp":
+        if (!e.on && Math.abs(P.x - e.x) < 10){ e.on = true; S.cp = { x:e.x, y:e.y }; SFX.play("cp"); for (var c = 0; c < 8; c++) spark(e.x, e.y - 20); banner("CHECKPOINT", "Lightbox on"); }
+        break;
+      case "plinth": break;
+      default: // crab, bat, spiky
+        var ew = 14, eh = e.kind === "bat" ? 10 : e.kind === "spiky" ? 12 : 10;
+        if (!overlap(e, ew, eh)) break;
+        var stomp = P.vy > 30 && P.prevBottom <= e.y - eh + 6;
+        if (P.roll > 0 && e.kind !== "spiky"){ kill(e, P.face); }
+        else if (stomp && e.kind !== "spiky"){ kill(e, 0); P.vy = held("jump") ? -330 : -220; P.y = e.y - eh; }
+        else if (stomp){ P.vy = -240; hurt(e.x); }
+        else hurt(e.x);
+    }
+  });
+  // plinth hint
+  var pl = S.mode === "play" && nearPlinth(); hint(pl && S.bridgeN === 0 && S.bridgeT < 0 ? (TOUCH ? "Press ▲ to read the plinth" : "Press ↑ to read the plinth") : "");
+  // pit
+  if (P.y > H + 30) pitfall();
+  // exit
+  if (P.x >= LV.exitX && P.ground && S.mode === "play"){ S.mode = "exit"; S.exitT = 0; P.vx = 0; P.roll = 0; finishLevel(); }
+}
+function kill(e, push){
+  e.alive = false; e.dead = true; e.dvy = -200; e.dvx = push * 80; SFX.play("stomp");
+  for (var i = 0; i < 5; i++) puff(e.x, e.y - 6, BONE);
+}
+function hurt(fromX){
+  if (P.inv > 0 || S.mode !== "play") return;
+  S.hearts--; hud(true);
+  if (S.hearts <= 0){ knockOut(); return; }
+  SFX.play("hurt"); P.inv = 1.4; P.roll = 0; P.rollAng = 0; P.climb = false; P.grabCD = .4;
+  P.vx = (P.x < fromX ? -1 : 1) * 120; P.vy = -200; P.ground = false;
+}
+function knockOut(){
+  S.mode = "ko"; S.koT = 0; S.kos++; P.ko = true; P.vy = -280; P.vx = 0; P.roll = 0; P.climb = false; SFX.play("ko");
+}
+function koStep(dt){
+  S.koT += dt; P.vy = Math.min(MAXF, P.vy + GRAV * dt); P.y += P.vy * dt;
+  if (S.koT > 1.6 && !S.koFading){ S.koFading = true; fade(1).then(function(){ respawn(true); S.koFading = false; }); }
+}
+function pitfall(){
+  if (S.mode !== "play") return;
+  S.hearts--; hud(true); SFX.play("fall");
+  if (S.hearts <= 0){ S.kos++; }
+  S.mode = "ko"; S.koT = 1.6; P.ko = false;
+}
+function respawn(){
+  if (S.hearts <= 0) S.hearts = 3;
+  var at = S.cp || LV.start; resetPlayer(at); P.inv = 1.2;
+  S.cam = clamp(P.x - W / 2, 0, LV.cols * T - W); S.mode = "play"; hud(); fade(0);
+}
+function nearPlinth(){
+  for (var i = 0; i < LV.ents.length; i++){ var e = LV.ents[i]; if (e.kind === "plinth" && Math.abs(P.x - e.x) < 14 && Math.abs(P.y - e.y) < 4) return e; }
+  return null;
+}
+function tryPlinth(){
+  var e = nearPlinth(); if (!e || S.bridgeN > 0 || S.bridgeT >= 0 || S.mode !== "play") return;
+  openQuiz(e.puzzle);
+}
+function exitStep(dt){
+  S.exitT += dt;
+  P.x = approach(P.x, LV.exitX + 16, 50 * dt); P.anim += dt * 8; P.face = 1;
+}
+function puff(x, y, col){ S.parts.push({ x:x + (Math.random() - .5) * 6, y:y - Math.random() * 3, vx:(Math.random() - .5) * 50, vy:-Math.random() * 40, life:.35 + Math.random() * .2, col:col, s:2 }); }
+function spark(x, y){ var a = Math.random() * 6.28, v = 40 + Math.random() * 50; S.parts.push({ x:x, y:y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, life:.4, col:Math.random() < .5 ? "#fff2a8" : "#ffcf3a", s:1, g:60 }); }
+
+/* ======================================================================
+   RENDER
+   ====================================================================== */
+var cv = $("cv"), g = cv.getContext("2d"); g.imageSmoothingEnabled = false;
+function tileBg(img, f, y){
+  var w = img.width, off = Math.round(-(S.cam * f) % w); if (off > 0) off -= w;
+  for (var x = off; x < W; x += w) g.drawImage(img, x, y || 0);
+}
+function drawSpr(img, x, yb, flip){
+  var dx = Math.round(x), dy = Math.round(yb) - img.height + 1;
+  if (flip){ g.save(); g.translate(dx, 0); g.scale(-1, 1); g.drawImage(img, -Math.round(img.width / 2), dy); g.restore(); }
+  else g.drawImage(img, dx - Math.round(img.width / 2), dy);
+}
+function render(){
+  if (S.mode === "cut"){ renderCut(); return; }
+  var cam = Math.round(S.cam);
+  g.drawImage(BG.sky, 0, 0); tileBg(BG.far, .15); tileBg(BG.mid, .4); tileBg(BG.near, .7);
+  g.drawImage(LVC, cam, 0, W, H, 0, 0, W, H);
+  // bridge
+  if (LV.bx0){
+    var bx0 = LV.bx0 * T - cam, by = 11 * T;
+    g.strokeStyle = "#7a5a3a"; g.lineWidth = 1;
+    if (S.bridgeN > 0){
+      var endX = bx0 + S.bridgeN * T; g.beginPath(); g.moveTo(bx0 - 4, by - 10); g.quadraticCurveTo((bx0 + endX) / 2, by - 4, endX, by - 9); g.stroke();
+    }
+    for (var i = 0; i < LV.bn; i++){
+      var px = bx0 + i * T;
+      if (i < S.bridgeN){ g.fillStyle = BONE; g.fillRect(px + 1, by + 1, 14, 4); g.fillStyle = BONED; g.fillRect(px + 1, by + 4, 14, 1);
+        g.fillStyle = BONEL; g.fillRect(px, by, 3, 3); g.fillRect(px + 13, by, 3, 3); g.fillStyle = "#5e3a1e"; g.fillRect(px, by + 5, 16, 1); }
+    }
+    if (S.bridgeN === 0){ // dangling broken ends
+      g.fillStyle = "#7a5a3a"; g.fillRect(bx0, by - 2, 1, 14); g.fillRect(bx0 + LV.bn * T - 1, by - 2, 1, 12);
+      g.fillStyle = BONE; g.fillRect(bx0 - 2, by + 12, 5, 3); g.fillRect(bx0 + LV.bn * T - 3, by + 10, 5, 3);
+    }
+  }
+  // entities
+  LV.ents.forEach(function(e){
+    if (!e.alive && !e.dead) return;
+    var sx = e.x - cam; if (sx < -24 || sx > W + 24) return;
+    var fr = Math.floor(e.t * 6) % 2;
+    switch (e.kind){
+      case "tok": var k = Math.abs(Math.cos(S.t * 3 + e.x * .05)), w = Math.max(2, Math.round(SPR.token.width * k));
+        g.drawImage(SPR.token, Math.round(sx - w / 2), Math.round(e.y - 10 + Math.sin(S.t * 3 + e.x) * 1.2), w, SPR.token.height); break;
+      case "page": g.fillStyle = "rgba(255,240,170," + (.25 + Math.sin(S.t * 4) * .1) + ")"; g.beginPath(); g.arc(sx, e.y - 10 + Math.sin(S.t * 2) * 2, 11, 0, 7); g.fill();
+        drawSpr(SPR.page, sx, e.y - 2 + Math.sin(S.t * 2) * 2); break;
+      case "cp": drawSpr(e.on ? SPR.lbOn : SPR.lbOff, sx, e.y); break;
+      case "plinth": drawSpr(SPR.plinth, sx, e.y);
+        if (S.bridgeN === 0){ g.fillStyle = "rgba(95,224,192," + (.18 + Math.sin(S.t * 4) * .1) + ")"; g.beginPath(); g.arc(sx, e.y - 19, 9, 0, 7); g.fill(); } break;
+      case "crab": drawSpr(SPR.crab[e.alive ? fr : 0], sx, e.y, e.dir > 0); break;
+      case "spiky": drawSpr(SPR.spiky[fr], sx, e.y, e.dir > 0); break;
+      case "bat": drawSpr(SPR.bat[Math.floor(e.t * 8) % 2], sx, e.y, e.dir > 0); break;
+    }
+    if (e.dead && e.y > H + 40) e.dead = false;
+  });
+  // player
+  if (P.x !== undefined && S.mode !== "end" && !(P.inv > 0 && Math.floor(S.t * 16) % 2 && S.mode === "play")){
+    var img, flip = P.face < 0, x0 = P.x - cam;
+    if (P.ko) img = SPR.hurt;
+    else if (P.climb) img = SPR.climb[Math.floor(P.anim) % 2];
+    else if (P.roll > 0){ g.save(); g.translate(Math.round(x0), Math.round(P.y - 9)); g.rotate(Math.round(P.rollAng / (Math.PI / 4)) * Math.PI / 4); g.drawImage(SPR.roll, -10, -17); g.restore(); img = null; }
+    else if (P.inv > 1.1) img = SPR.hurt;
+    else if (!P.ground && S.mode !== "exit") img = P.vy < 0 ? SPR.jump : SPR.fall;
+    else if (Math.abs(P.vx) > 8 || S.mode === "exit"){ P.anim += Math.abs(P.vx || 50) / 1400; img = SPR.run[Math.floor(P.anim) % 4]; }
+    else img = SPR.stand[Math.floor(S.t * 1.5) % 2];
+    if (img){
+      if (S.mode === "exit" && S.exitT > .3){ g.globalAlpha = Math.max(0, 1 - (S.exitT - .3) * 1.4); }
+      drawSpr(img, x0, P.y + 1, flip); g.globalAlpha = 1;
+    }
+  }
+  // particles
+  S.parts.forEach(function(p){ g.fillStyle = p.col; g.fillRect(Math.round(p.x - cam), Math.round(p.y), p.s, p.s); });
+  tileBg(BG.canopy, 1.1, -2);
+  if (S.portal > 0){ // the rift the radiographer falls through
+    var pr = S.portal, px0 = LV.start.x - cam;
+    g.fillStyle = "rgba(160,230,255," + pr * .35 + ")"; g.beginPath(); g.ellipse(px0, 26, 26 * pr + 4, 9 * pr + 2, 0, 0, 7); g.fill();
+    g.strokeStyle = "rgba(220,250,255," + pr + ")"; g.lineWidth = 2; g.beginPath(); g.ellipse(px0, 26, 22 * pr + 3, 7 * pr + 2, 0, 0, 7); g.stroke();
+  }
+  if (S.fade > 0){ g.fillStyle = "rgba(0,0,0," + S.fade + ")"; g.fillRect(0, 0, W, H); }
+}
+
+/* ======================================================================
+   INTRO CUTSCENE: the Atlas is stolen, its pages scattered, its chapters
+   handed to the five lieutenants; then the radiographer arrives.
+   ====================================================================== */
+var CUT = null, SKIP = {};
+function cutStep(dt){
+  var c = CUT; c.t += dt;
+  var d = c.doc;
+  if (Math.abs(d.x - d.tx) > .5){ d.x = approach(d.x, d.tx, 38 * dt); d.anim += dt * 5; d.face = d.tx > d.x ? 1 : -1; d.walking = true; } else d.walking = false;
+  c.shake = Math.max(0, c.shake - dt * 1.5); c.flash = Math.max(0, c.flash - dt * 1.8);
+  c.pages.forEach(function(p){ p.t += dt; p.x += p.vx * dt + Math.sin(p.t * 7 + p.ph) * 18 * dt; p.y += p.vy * dt; p.vy += 22 * dt; p.rot += p.vr * dt; });
+  c.gifts.forEach(function(gf){ gf.t = Math.min(1, gf.t + dt * 1.6); if (gf.t >= 1 && !c.lit[gf.i]){ c.lit[gf.i] = true; SFX.play("cp"); } });
+}
+function walkDoc(tx){ CUT.doc.tx = tx; return waitFor(function(){ return CUT.skip || Math.abs(CUT.doc.x - tx) <= .5; }); }
+function burstPages(){
+  var c = CUT, ax = c.doc.x + 7, ay = c.doc.y - 44;
+  for (var i = 0; i < 26; i++){ var a = -Math.PI / 2 + (Math.random() - .5) * 2.6, v = 60 + Math.random() * 90;
+    c.pages.push({ x:ax, y:ay, vx:Math.cos(a) * v, vy:Math.sin(a) * v - 20, t:0, ph:Math.random() * 6, rot:0, vr:(Math.random() - .5) * 8 }); }
+  c.shake = 1.2; c.flash = .8; SFX.play("page"); SFX.play("roll");
+}
+function renderCut(){
+  var c = CUT, sh = c.shake > 0 ? Math.round((Math.random() - .5) * c.shake * 5) : 0, d = c.doc;
+  g.save(); g.translate(sh, 0);
+  if (c.scene === "temple"){
+    g.drawImage(BG.temple, 0, 0);
+    [34, 222].forEach(function(tx){ var f = Math.floor(c.t * 10) % 3; g.fillStyle = "#5a3a20"; g.fillRect(tx - 2, 60, 4, 10);
+      g.fillStyle = "#ff9a3a"; g.fillRect(tx - 3, 52 - f, 6, 8 + f); g.fillStyle = "#ffe08a"; g.fillRect(tx - 1, 55 - f, 2, 4 + f); });
+    if (!c.taken){
+      g.fillStyle = "rgba(255,230,140," + (.25 + Math.sin(c.t * 3) * .08) + ")"; g.beginPath(); g.arc(160, 142, 16, 0, 7); g.fill();
+      drawSpr(SPR.atlas, 160, 150);
+    }
+  } else {
+    g.drawImage(BG.lair, 0, 0);
+    var b = Math.floor(c.t * 6) % 4; g.fillStyle = "#6aff8a"; g.fillRect(28 + b, 116 - b * 2, 2, 2); g.fillRect(214 - b, 74 - b * 2, 2, 2);
+  }
+  // Dr Dissection
+  var pose = d.pose === "auto" ? (d.walking ? SPR.doc.walk[Math.floor(d.anim) % 2] : SPR.doc.stand) : SPR.doc[d.pose];
+  drawSpr(pose, d.x, d.y, d.face < 0);
+  if (c.taken && d.pose === "raise") drawSpr(SPR.atlas, d.x + (d.face < 0 ? -1 : 1), d.y - 37);
+  if (c.taken && d.pose === "hold") drawSpr(SPR.atlas, d.x + d.face * 9, d.y - 15);
+  if (c.scene === "lair"){
+    var xs = [26, 76, 128, 180, 230];
+    SPR.lieut.forEach(function(img, i){
+      var lx = xs[i] - 22, ly = H - 58 + (c.lit[i] ? Math.round(Math.sin(c.t * 3 + i) * 1) : 0);
+      g.fillStyle = c.lit[i] ? "rgba(150,90,210,.28)" : "rgba(110,60,160,.14)"; g.beginPath(); g.ellipse(xs[i], H - 4, 24, 7, 0, 0, 7); g.fill();
+      g.drawImage(img, lx, ly);
+      if (c.lit[i]){ var L = LIEUT[i]; g.fillStyle = L.eye; L.eyes.forEach(function(e){ g.fillRect(lx + e[0], ly + e[1], 2, 2); });
+        g.fillStyle = "rgba(255,240,170,.25)"; g.beginPath(); g.arc(xs[i] + 12, ly + 44, 6, 0, 7); g.fill(); g.drawImage(SPR.page, xs[i] + 5, ly + 36); }
+    });
+    c.gifts.forEach(function(gf){ if (gf.t >= 1) return; var sx = d.x + 8, sy = d.y - 20, ex = xs[gf.i] + 12, ey = H - 14;
+      var px = sx + (ex - sx) * gf.t, py = sy + (ey - sy) * gf.t - Math.sin(gf.t * Math.PI) * 40; g.drawImage(SPR.page, Math.round(px - 7), Math.round(py - 8)); });
+  }
+  c.pages.forEach(function(p){ var w = Math.max(2, Math.round(Math.abs(Math.cos(p.rot)) * 12)); g.drawImage(SPR.page, Math.round(p.x - w / 2), Math.round(p.y - 7), w, 14); });
+  g.restore();
+  if (c.flash > 0){ g.fillStyle = "rgba(255,250,230," + c.flash + ")"; g.fillRect(0, 0, W, H); }
+  if (c.caption){ g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(0, 6, W, 15); g.fillStyle = "#f3ecd6"; g.font = "8px 'Press Start 2P', monospace"; g.textAlign = "center"; g.fillText(c.caption, W / 2, 17); g.textAlign = "left"; }
+  if (S.fade > 0){ g.fillStyle = "rgba(0,0,0," + S.fade + ")"; g.fillRect(0, 0, W, H); }
+}
+// each await throws SKIP once the player skips, so the script just stops
+async function cs(p){ await p; if (CUT && CUT.skip) throw SKIP; }
+async function introCutscene(){
+  CUT = { scene:"temple", t:0, doc:{ x:-16, y:176, tx:-16, face:1, pose:"auto", anim:0 }, taken:false, pages:[], gifts:[], lit:[], shake:0, flash:0, caption:"THE TEMPLE OF ANATOMIA" };
+  S.mode = "cut"; $("bSkip").hidden = false;
+  try {
+    await cs(fade(0));
+    await cs(walkDoc(140));
+    CUT.caption = "";
+    await cs(say("doc", "At last. The Atlas of Anatomy: every bone, every muscle, every vessel and nerve, all in one book."));
+    CUT.taken = true; CUT.doc.pose = "raise"; CUT.flash = .6; SFX.play("select");
+    await cs(say("doc", "And now it is MINE!"));
+    CUT.doc.pose = "laugh"; SFX.play("laugh"); await cs(after(.8));
+    CUT.doc.pose = "raise"; burstPages(); await cs(after(1.6));
+    await cs(say("doc", "Fly, little pages! Scatter to every corner of Anatomia. Without its Atlas, this world will forget where everything belongs."));
+    CUT.doc.pose = "auto"; await cs(walkDoc(270)); await cs(fade(1));
+    CUT.scene = "lair"; CUT.pages = []; CUT.doc.x = CUT.doc.tx = 128; CUT.doc.y = 150; CUT.doc.face = 1; CUT.doc.pose = "hold"; CUT.caption = "DR DISSECTION'S LAIR";
+    await cs(fade(0)); await cs(after(.6)); CUT.caption = "";
+    await cs(say("doc", "The loose pages can blow where they like. But the great chapters... those I entrust to my lieutenants."));
+    var lines = [
+      "The Bone Collector: the skeleton. Rattle anyone who comes looking.",
+      "Flexor Rex: the muscles. Do try not to pull anything.",
+      "The Clot King: the heart and vessels. Block every route.",
+      "The Cerebral Menace: the brain and nerves. Think of something nasty.",
+      "And Lord Peristalsis: the gut. Keep things moving... well away from me."
+    ];
+    for (var i = 0; i < 5; i++){
+      CUT.doc.face = i < 2 ? -1 : 1; CUT.gifts.push({ i:i, t:0 }); SFX.play("jump");
+      await cs(say("doc", lines[i]));
+    }
+    CUT.doc.face = 1; CUT.doc.pose = "laugh"; SFX.play("laugh");
+    await cs(say("doc", "Let anyone try to put Anatomia back together now. Mwah-ha-ha!"));
+    await cs(fade(1));
+  } catch (e){ if (e !== SKIP) throw e; }
+  $("bSkip").hidden = true;
+  var skipped = CUT.skip; CUT = null; S.seenIntro = true;
+  return skipped;
+}
+function skipCut(){
+  if (!CUT || CUT.skip) return;
+  CUT.skip = true; SFX.play("select");
+  if (S.dlg){ var d = S.dlg; S.dlg = null; $("dlg").classList.remove("on"); d.res(); }
+  if (S.fadeRes){ var r = S.fadeRes; S.fadeRes = null; S.fade = S.fadeTo; r(); }
+  S.waiters.splice(0).forEach(function(w){ w.res(); });
+}
+function arriveStep(dt){
+  S.portal = Math.max(0, S.portal - dt * .5);
+  if (P.ground) return;
+  P.vy = Math.min(MAXF, P.vy + GRAV * .6 * dt); P.prevBottom = P.y; moveY(dt);
+  if (P.ground){ SFX.play("stomp"); for (var i = 0; i < 8; i++) puff(P.x, P.y, "#d8c8a0"); }
+}
+async function arrival(){
+  resetPlayer({ x:LV.start.x, y:-6 }); S.cam = 0; S.portal = 1; S.mode = "arrive"; SFX.play("page");
+  await fade(0);
+  await waitFor(function(){ return P.ground; }); await after(.5);
+  await say("hero", "Ow! Where... am I? One minute I'm reporting films, the next I'm on an island made of bones.");
+  await say("hero", "Pages from an anatomy atlas, scattered everywhere? Somebody has made a real mess of this place. Time to put it right.");
+}
+
+/* ======================================================================
+   DIALOGUE
+   ====================================================================== */
+var WHO = { doc:{ name:"DR DISSECTION", col:"#c9b8ff", port:"pDoc" }, hero:{ name:"YOU", col:"#8fd0ff", port:"pHero" } };
+function say(who, text){
+  return new Promise(function(res){
+    var w = WHO[who], pc = $("dlgPort").getContext("2d");
+    pc.clearRect(0, 0, 26, 26); pc.drawImage(SPR[w.port], 0, 0);
+    $("dlgName").textContent = w.name; $("dlgName").style.color = w.col; $("dlgText").textContent = "";
+    $("dlg").classList.add("on"); $("dlg").classList.remove("done"); $("dlg").classList.toggle("top", !!(CUT && CUT.scene === "lair") || S.mode === "arrive");
+    S.dlg = { text:text, n:0, acc:0, res:res };
+    say_live(w.name + ": " + text);
+  });
+}
+function dlgTick(dt){
+  var d = S.dlg; if (d.n >= d.text.length) return;
+  d.acc += dt * 55; var k = Math.floor(d.acc);
+  if (k > 0){ d.acc -= k; d.n = Math.min(d.text.length, d.n + k); $("dlgText").textContent = d.text.slice(0, d.n); if (d.n % 3 === 0) SFX.play("blip");
+    if (d.n >= d.text.length) $("dlg").classList.add("done"); }
+}
+function dlgAdvance(){
+  var d = S.dlg; if (!d) return;
+  if (d.n < d.text.length){ d.n = d.text.length; $("dlgText").textContent = d.text; $("dlg").classList.add("done"); return; }
+  SFX.play("select"); S.dlg = null; $("dlg").classList.remove("on"); d.res();
+}
+
+/* ======================================================================
+   ANATOMY CHALLENGE (bridge plinth)
+   ====================================================================== */
+var PUZZLES = {
+  femur: {
+    kick:"BONE BRIDGE PLINTH",
+    prompt:"The bridge has lost its bones! Name the glowing bone to rebuild it.",
+    highlight:"femur", options:["Femur", "Humerus", "Tibia", "Fibula"], answer:"Femur",
+    where:{ Femur:"the thigh", Humerus:"the upper arm", Tibia:"the shin: the larger lower-leg bone", Fibula:"the thin outer bone of the lower leg" },
+    hint:"Look where it sits: between the hip and the knee.",
+    explain:["The femur is the thigh bone. It runs from the hip joint to the knee.",
+             "It is the longest and strongest bone in the body.",
+             "Its head sits in the acetabulum of the pelvis; at the knee it meets the tibia and the patella."],
+    caption:"Atlas plate: adult skeleton, anterior view. Concept drawing; a real radiograph will replace it."
+  }
+};
+function drawSkeleton(cx, hl){
+  var c = cx.canvas; cx.clearRect(0, 0, c.width, c.height);
+  cx.fillStyle = "#0b1520"; cx.fillRect(0, 0, c.width, c.height);
+  cx.strokeStyle = "rgba(120,170,210,.08)"; cx.lineWidth = 1;
+  for (var i = 8; i < c.width; i += 12){ cx.beginPath(); cx.moveTo(i, 0); cx.lineTo(i, c.height); cx.stroke(); }
+  for (i = 8; i < c.height; i += 12){ cx.beginPath(); cx.moveTo(0, i); cx.lineTo(c.width, i); cx.stroke(); }
+  cx.lineCap = "round"; cx.lineJoin = "round";
+  function bone(name, w, fn){
+    var on = name === hl;
+    cx.save(); cx.strokeStyle = on ? "#ffcf3a" : "#d9dee4"; cx.fillStyle = cx.strokeStyle; cx.lineWidth = w;
+    if (on){ cx.shadowColor = "rgba(255,207,58,.95)"; cx.shadowBlur = 9; }
+    cx.beginPath(); fn(); cx.stroke(); cx.restore();
+  }
+  function seg(a, b, c2, d){ return function(){ cx.moveTo(a, b); cx.lineTo(c2, d); }; }
+  function both(name, w, a, b, c2, d){ bone(name, w, function(){ cx.moveTo(a, b); cx.lineTo(c2, d); cx.moveTo(120 - a, b); cx.lineTo(120 - c2, d); }); }
+  bone("skull", 2.5, function(){ cx.ellipse(60, 17, 10, 12, 0, 0, 7); }); bone("skull", 2, function(){ cx.moveTo(53, 27); cx.quadraticCurveTo(60, 34, 67, 27); });
+  bone("spine", 3, seg(60, 30, 60, 86));
+  for (i = 0; i < 6; i++) bone("ribs", 1.6, function(){ cx.ellipse(60, 46 + i * 4.2, 15 - i * .3, 6, 0, .1, Math.PI - .1); });
+  both("clavicle", 2, 60, 41, 43, 39);
+  both("humerus", 3.4, 43, 42, 37, 70);
+  both("radius", 2, 36, 71, 32, 96); both("ulna", 2, 39, 72, 36, 97);
+  bone("hand", 2, function(){ cx.ellipse(33, 102, 3, 5, 0, 0, 7); cx.moveTo(90, 102); cx.ellipse(87, 102, 3, 5, 0, 0, 7); });
+  bone("pelvis", 2.5, function(){ cx.ellipse(50, 92, 10, 7, -.3, Math.PI * .9, Math.PI * 2.1); cx.moveTo(80, 92); cx.ellipse(70, 92, 10, 7, .3, Math.PI * .9, Math.PI * 2.1); });
+  both("femur", 4, 52, 97, 50, 125);
+  bone("patella", 2, function(){ cx.ellipse(50, 128, 2.5, 2.5, 0, 0, 7); cx.moveTo(72.5, 128); cx.ellipse(70, 128, 2.5, 2.5, 0, 0, 7); });
+  both("tibia", 3.6, 51, 132, 51, 157); both("fibula", 1.8, 46, 133, 46, 156);
+  both("foot", 2.4, 50, 160, 43, 164);
+}
+var QZ = null;
+function openQuiz(id){
+  var q = PUZZLES[id]; QZ = { q:q, tries:0, done:false };
+  S.mode = "quiz"; hint(""); KEY = {}; PAD = {};
+  $("qKick").textContent = q.kick; $("qPrompt").textContent = q.prompt; $("qCap").textContent = q.caption; $("qFb").innerHTML = ""; $("qGo").hidden = true;
+  drawSkeleton($("qCv").getContext("2d"), q.highlight);
+  var box = $("qOpts"); box.innerHTML = "";
+  shuffle(q.options).forEach(function(o, i){
+    var b = document.createElement("button"); b.innerHTML = "<kbd>" + (i + 1) + "</kbd>" + o; b.dataset.o = o;
+    b.onclick = function(){ answer(b); }; box.appendChild(b);
+  });
+  $("quiz").classList.add("on"); SFX.play("select");
+  setTimeout(function(){ box.firstChild.focus({ preventScroll:true }); }, 30);
+}
+function esc(t){ return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function answer(b){
+  if (!QZ || QZ.done || b.disabled) return;
+  var q = QZ.q, o = b.dataset.o; QZ.tries++;
+  if (o === q.answer){
+    QZ.done = true; b.classList.add("right"); SFX.play("right");
+    Array.prototype.forEach.call($("qOpts").children, function(x){ if (x !== b) x.disabled = true; });
+    $("qFb").innerHTML = '<b class="y">CORRECT: ' + esc(q.answer.toUpperCase()) + "</b><ul>" + q.explain.map(function(t){ return "<li>" + esc(t) + "</li>"; }).join("") + "</ul>";
+    $("qGo").hidden = false; $("qGo").focus({ preventScroll:true });
+  } else {
+    b.disabled = true; SFX.play("wrong");
+    $("qFb").innerHTML = '<b class="n">NOT QUITE.</b> The ' + esc(o.toLowerCase()) + " is " + esc(q.where[o]) + ". " + esc(q.hint);
+  }
+}
+function closeQuiz(){
+  if (!QZ || !QZ.done) return;
+  $("quiz").classList.remove("on"); var first = QZ.tries === 1; QZ = null;
+  S.mode = "play"; S.bridgeT = 0; S.bridgeN = 0;
+  if (first) unlock("pick");
+  say_live("The bone bridge is rebuilt");
+}
+$("qGo").onclick = closeQuiz;
+
+/* ======================================================================
+   HUD, MARKERS, BANNER
+   ====================================================================== */
+var MARKERS = [
+  { id:"pick", title:"A Bone to Pick", sub:"Rebuilt the bone bridge on your first answer", img:"mPick" },
+  { id:"nobones", title:"No Bones About It", sub:"Cleared Bone Island: Welcome to the Jungle", img:"mAtlas" }
+];
+var MARKIMG = {};
+function hud(pop){
+  $("hTok").lastChild.textContent = S.tokens;
+  $("hPage").textContent = Object.keys(S.pages).length + "/2";
+  var h = $("hHearts"); h.innerHTML = "";
+  for (var i = 0; i < 3; i++){ var e = document.createElement("i"); if (i >= S.hearts) e.className = "off"; else if (pop) e.className = "pop"; h.appendChild(e); }
+  h.setAttribute("aria-label", S.hearts + " of 3 hearts");
+  var hm = $("hMarks"); hm.innerHTML = "";
+  MARKERS.forEach(function(m){ var im = document.createElement("img"); im.src = MARKIMG[m.id]; im.alt = m.title + (S.unlocked[m.id] ? " (unlocked)" : " (locked)"); im.title = m.title + ": " + m.sub; if (S.unlocked[m.id]) im.className = "on"; hm.appendChild(im); });
+}
+function unlock(id){
+  if (S.unlocked[id]) return; S.unlocked[id] = true; save("markers", S.unlocked); hud();
+  var m = MARKERS.filter(function(x){ return x.id === id; })[0]; toast(m);
+}
+var toastT;
+function toast(m){
+  var w = $("ach");
+  $("achTitle").textContent = m.title; $("achShare").textContent = m.title; $("achSub").textContent = m.sub;
+  $("achMarker").innerHTML = '<img alt="" src="' + MARKIMG[m.id] + '">';
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ w.classList.remove("on", "is-playing"); }, 9000);
+  w.classList.add("on"); w.classList.remove("is-playing"); void w.offsetWidth; w.classList.add("is-playing");
+  setTimeout(function(){ SFX.play("ach"); }, REDUCED ? 0 : 600);
+  w._m = m;
+}
+function hint(t){ if (S.hintT === t) return; S.hintT = t; var h = $("hint"); h.textContent = t || ""; h.classList.toggle("on", !!t); }
+function banner(t, s){ $("bannerT").textContent = t; $("bannerS").textContent = s || ""; var b = $("banner"); b.classList.remove("on"); void b.offsetWidth; b.classList.add("on"); S.bannerT = 1.8; }
+
+/* ======================================================================
+   FLOW
+   ====================================================================== */
+function newRun(){
+  buildLevel(); S.tokens = 0; S.pages = {}; S.hearts = 3; S.kos = 0; S.time = 0; S.cp = null; S.bridgeN = 0; S.bridgeT = -1; S.parts = [];
+  resetPlayer(LV.start); S.cam = 0; hud();
+}
+async function startGame(){
+  if (S.mode !== "title" && S.mode !== "end") return;
+  $("title").classList.remove("on"); $("end").classList.remove("on"); $("bMenu").hidden = false;
+  SFX.ensure(); newRun(); S.mode = "intro";
+  if (!S.seenIntro){
+    S.fade = S.fadeTo = 1;
+    var skipped = await introCutscene();
+    S.fade = S.fadeTo = 1;
+    if (!skipped) await arrival();
+    else { resetPlayer(LV.start); S.mode = "intro"; await fade(0); }
+  } else { P.ground = true; await fade(0); }
+  S.portal = 0; S.mode = "play"; banner("BONE ISLAND", "1-1  Welcome to the Jungle");
+}
+async function finishLevel(){
+  SFX.play("clear");
+  await after(1.4);
+  unlock("nobones");
+  var t = Math.round(S.time), mm = Math.floor(t / 60), ss = ("0" + t % 60).slice(-2);
+  $("eSub").textContent = "BONE ISLAND · 1-1 WELCOME TO THE JUNGLE";
+  $("eStats").innerHTML = [["TOKENS", S.tokens + "/" + LV.totalTok], ["ATLAS PAGES", Object.keys(S.pages).length + "/2"], ["KNOCK-OUTS", S.kos], ["TIME", mm + ":" + ss]]
+    .map(function(s){ return "<div><span>" + s[0] + "</span><b>" + s[1] + "</b></div>"; }).join("");
+  $("eMarks").innerHTML = MARKERS.map(function(m){ return '<div class="' + (S.unlocked[m.id] ? "on" : "") + '"><img alt="" src="' + MARKIMG[m.id] + '">' + m.title + "</div>"; }).join("");
+  S.mode = "end"; $("end").classList.add("on");
+  setTimeout(function(){ $("eAgain").focus({ preventScroll:true }); }, 30);
+}
+function showTitle(){
+  S.mode = "title"; S.dlg = null; $("dlg").classList.remove("on"); $("quiz").classList.remove("on"); $("end").classList.remove("on");
+  hint(""); newRun(); S.cam = 0; S.fadeTo = .25; $("title").classList.add("on"); $("bMenu").hidden = true;
+  setTimeout(function(){ $("tStart").focus({ preventScroll:true }); }, 30);
+}
+$("tStart").onclick = startGame;
+$("bSkip").onclick = skipCut;
+$("eAgain").onclick = startGame;
+$("eTitle").onclick = showTitle;
+$("bMenu").onclick = function(){ if (S.mode === "quiz" || S.dlg) return; showTitle(); };
+
+/* ======================================================================
+   INPUT
+   ====================================================================== */
+var KMAP = { ArrowLeft:"left", a:"left", A:"left", ArrowRight:"right", d:"right", D:"right", ArrowUp:"up", w:"up", W:"up", ArrowDown:"down", s:"down", S:"down",
+  " ":"jump", z:"jump", Z:"jump", k:"jump", K:"jump", x:"roll", X:"roll", j:"roll", J:"roll", Shift:"roll" };
+document.addEventListener("keydown", function(e){
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  var k = e.key, tag = (e.target && e.target.tagName) || "";
+  if (S.mode === "quiz"){
+    if (/^[1-4]$/.test(k)){ var b = $("qOpts").children[+k - 1]; if (b) answer(b); e.preventDefault(); return; }
+    if ((k === "Enter" || k === " ") && QZ && QZ.done && tag !== "BUTTON"){ closeQuiz(); e.preventDefault(); }
+    return;
+  }
+  if (CUT && k === "Escape"){ skipCut(); e.preventDefault(); return; }
+  if (S.mode === "title" && (k === "Enter" || k === " ") && tag !== "BUTTON"){ startGame(); e.preventDefault(); return; }
+  if (S.dlg && (k === "Enter" || k === " " || k === "z" || k === "Z")){ dlgAdvance(); e.preventDefault(); return; }
+  var a = KMAP[k];
+  if (a){ if (tag === "BUTTON" && (k === " ")) e.target.blur(); if (!KEY[a]) PRESS[a] = true; KEY[a] = true; e.preventDefault(); }
+});
+document.addEventListener("keyup", function(e){ var a = KMAP[e.key]; if (a) KEY[a] = false; if (e.key === "Shift"){ KEY.roll = false; } });
+window.addEventListener("blur", function(){ KEY = {}; PAD = {}; });
+$("dlg").addEventListener("click", dlgAdvance);
+cv.addEventListener("pointerdown", function(){ SFX.ensure(); if (S.dlg) dlgAdvance(); });
+
+// touch pad
+(function(){
+  var dp = $("dpad");
+  function setFrom(e){
+    var el = document.elementFromPoint(e.clientX, e.clientY), d = el && el.getAttribute && el.getAttribute("data-d");
+    ["left", "right", "up", "down"].forEach(function(k){ if (d === k && !PAD[k]) PRESS[k] = true; PAD[k] = d === k; });
+    Array.prototype.forEach.call(dp.children, function(b){ b.classList.toggle("on", !!PAD[b.getAttribute("data-d")]); });
+  }
+  dp.addEventListener("pointerdown", function(e){ e.preventDefault(); dp.setPointerCapture(e.pointerId); setFrom(e); });
+  dp.addEventListener("pointermove", function(e){ if (dp.hasPointerCapture(e.pointerId)) setFrom(e); });
+  function end(){ PAD.left = PAD.right = PAD.up = PAD.down = false; Array.prototype.forEach.call(dp.children, function(b){ b.classList.remove("on"); }); }
+  dp.addEventListener("pointerup", end); dp.addEventListener("pointercancel", end);
+  function btn(el, k){
+    el.addEventListener("pointerdown", function(e){ e.preventDefault(); SFX.ensure(); if (S.dlg){ dlgAdvance(); return; } PRESS[k] = true; PAD[k] = true; el.classList.add("on"); });
+    ["pointerup", "pointercancel", "pointerleave"].forEach(function(t){ el.addEventListener(t, function(){ PAD[k] = false; el.classList.remove("on"); }); });
+  }
+  btn($("padA"), "jump"); btn($("padB"), "roll");
+})();
+
+$("bSound").onclick = function(){ SFX.on = !SFX.on; save("sound", SFX.on); this.setAttribute("aria-pressed", SFX.on ? "true" : "false"); if (SFX.on) SFX.play("select"); };
+$("bSound").setAttribute("aria-pressed", SFX.on ? "true" : "false");
+$("achReplay").onclick = function(){ if ($("ach")._m) toast($("ach")._m); };
+$("achClose").onclick = function(){ $("ach").classList.remove("on", "is-playing"); };
+
+/* ======================================================================
+   LAYOUT
+   ====================================================================== */
+var TOUCH = (window.matchMedia && matchMedia("(pointer: coarse)").matches) || ("ontouchstart" in window);
+function layout(){
+  var root = $("ak"); root.classList.toggle("touch", TOUCH);
+  var a = $("arena").getBoundingClientRect(), padH = TOUCH && a.height > a.width * .95 ? 150 : 0;
+  var aw = a.width - 8, ah = a.height - 8 - padH;
+  var s = Math.max(.5, Math.min(aw / W, ah / H));
+  if (s >= 2) s = Math.floor(s * 4) / 4;
+  var st = $("stage");
+  st.style.width = W * s + "px"; st.style.height = H * s + "px";
+  st.style.left = Math.round((a.width - W * s) / 2) + "px"; st.style.top = Math.round((a.height - padH - H * s) / 2) + "px";
+  st.style.setProperty("--u", s + "px");
+}
+window.addEventListener("resize", layout);
+if (window.ResizeObserver) new ResizeObserver(layout).observe($("arena"));
+window.addEventListener("orientationchange", function(){ setTimeout(layout, 200); });
+document.addEventListener("touchstart", function once(){ if (!TOUCH){ TOUCH = true; layout(); } document.removeEventListener("touchstart", once); }, { passive:true });
+
+/* ======================================================================
+   BOOT
+   ====================================================================== */
+function footer(){
+  $("foot").innerHTML = "<details><summary>Educational use only; not for clinical decisions. Credits ▸</summary><p>Anatomy Kong: The Lost Atlas, a Rad-Lad game. " +
+    "All characters, levels and pixel art are original. Concept art for Dr Dissection and the radiographer by Rad-Lad.</p></details>";
+}
+buildSprites(); buildBackdrop(); buildCutArt(); buildLevel(); buildLevelArt();
+MARKERS.forEach(function(m){ MARKIMG[m.id] = spriteURL(SPR[m.img], 4); });
+$("hTokImg").src = spriteURL(SPR.token, 1);
+$("hLogo").src = ASSETS.logo_mark || ""; $("achLogo").src = ASSETS.logo_mark || "";
+footer(); layout(); showTitle(); hud();
+if (TOUCH) $("tKeys").innerHTML = "D-pad to run and climb &middot; <kbd>JUMP</kbd> &middot; <kbd>ROLL</kbd> &middot; <kbd>&#9650;</kbd> read a plinth";
+var last = performance.now();
+(function frame(ts){
+  var dt = Math.min(.05, Math.max(0, (ts - last) / 1000)); last = ts;
+  update(dt); render();
+  requestAnimationFrame(frame);
+})(last);
+</script>
+</body>
+</html>
