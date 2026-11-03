@@ -1,2 +1,5 @@
 __pycache__/
 _preview.html
+cinematic/**/frames/
+cinematic/**/stills/
+cinematic/**/*.blend1
