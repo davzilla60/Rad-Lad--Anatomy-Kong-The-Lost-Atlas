@@ -118,6 +118,7 @@ html,body{background:#0d0a14;height:100%}
 #ak .btn{flex:1;font-family:var(--pix) !important;font-weight:700;font-size:max(14px,calc(var(--u)*7)) !important;padding:calc(var(--u)*3) calc(var(--u)*5) !important;border:2px solid var(--frame) !important;border-radius:8px;background:#221834 !important;white-space:nowrap}
 #ak .btn.pri{background:linear-gradient(#ffd85a,#f0a020) !important;border-color:#2a1404 !important;color:#2a1404 !important;box-shadow:inset 0 2px 0 #fff0b0,0 3px 0 #2a1404}
 #ak .btn[hidden]{display:none}
+#ak .btn:disabled{opacity:.6;cursor:wait;filter:saturate(.5)}
 #ak .end h2{font-family:var(--pix);font-weight:700;color:var(--gold);font-size:max(22px,calc(var(--u)*13));line-height:1}
 #ak .end .sub{font-family:var(--pix);font-weight:600;font-size:max(12px,calc(var(--u)*5));color:var(--leaf);margin:calc(var(--u)*2) 0 calc(var(--u)*5);letter-spacing:1px}
 #ak .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*2.5);margin-bottom:calc(var(--u)*5)}
@@ -259,7 +260,7 @@ html,body{background:#0d0a14;height:100%}
         <h1>ANATOMY<br>KONG</h1>
         <div class="t-sub">THE LOST ATLAS</div>
         <div class="t-world">WORLD 1 &middot; BONE ISLAND</div>
-        <div class="t-btns"><button class="btn pri" id="tStart">Start adventure</button></div>
+        <div class="t-btns"><button class="btn pri" id="tStart" disabled>Loading&hellip;</button></div>
         <p class="t-keys" id="tKeys"><kbd>&larr;</kbd> <kbd>&rarr;</kbd> run &middot; <kbd>Z</kbd>/<kbd>Space</kbd> jump &middot; <kbd>X</kbd>/<kbd>Shift</kbd> roll<br><kbd>&uarr;</kbd> <kbd>&darr;</kbd> climb vines &middot; <kbd>&uarr;</kbd> read a plinth<br>Bump into an enemy and it quizzes you: answer right to defeat it.</p>
       </div></div>
     </div>
@@ -1656,7 +1657,7 @@ async function introCutscene(){
   try {
     // 1. The Grand Vault: down the corridor to the golden door
     MUS.drone(true); tw(c, "box", 1, 1.5);
-    await cs(fade(0, .45));
+    await cs(fade(0, .9));
     await cs(camTo(800, 108, 1.0, 9));
     await wait(.6);
     for (var i = 0; i < 6; i++){ await wait(.42); c.bolts = i + 1; SFX.play("clank"); c.shake = .3; }
@@ -2032,8 +2033,9 @@ function newRun(){
   buildLevel(); S.tokens = 0; S.pages = {}; S.hearts = 3; S.kos = 0; S.asked = 0; S.beaten = 0; S.wrong = 0; S.time = 0; S.cp = null; S.bridgeN = 0; S.bridgeT = -1; S.parts = [];
   resetPlayer(LV.start); S.cam = 0; hud();
 }
+var READY = false;
 async function startGame(){
-  if (S.mode !== "title" && S.mode !== "end") return;
+  if (!READY || (S.mode !== "title" && S.mode !== "end")) return;
   $("title").classList.remove("on"); $("end").classList.remove("on"); $("bMenu").hidden = false;
   SFX.ensure(); newRun(); S.mode = "intro";
   if (!S.seenIntro){
@@ -2148,6 +2150,7 @@ function footer(){
   $("hTokImg").src = SPR.token.toDataURL();
   $("hLogo").src = ASSETS.logo_mark || ""; $("achLogo").src = ASSETS.logo_mark || "";
   footer(); layout(); showTitle(); hud();
+  READY = true; $("tStart").disabled = false; $("tStart").textContent = "Start adventure";
   if (TOUCH) $("tKeys").innerHTML = "D-pad to run and climb &middot; <kbd>JUMP</kbd> &middot; <kbd>ROLL</kbd> &middot; <kbd>&#9650;</kbd> read a plinth";
   var last = performance.now();
   (function frame(ts){
