@@ -80,6 +80,14 @@ html,body{background:#0d0a14;height:100%}
 #ak .sub.on{display:block}
 #ak .sub b{display:block;font-weight:700;font-size:max(11px,calc(var(--u)*5.4));letter-spacing:1px;text-shadow:0 1px 0 #000}
 #ak .sub span{font-size:max(14px,calc(var(--u)*7.6));color:#fff;text-shadow:0 2px 0 #000,0 0 8px #000}
+#ak .sub.cap span{color:var(--gold);font-weight:700}
+#ak .cinevid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated;background:#000;display:none;z-index:4}
+#ak .cinevid.on{display:block}
+#ak .cinetitle{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:5;background:#000;font-family:var(--pix);text-align:center;opacity:0;transition:opacity .8s}
+#ak .cinetitle.on{display:flex}
+#ak .cinetitle.show{opacity:1}
+#ak .cinetitle b{font-weight:700;font-size:max(30px,calc(var(--u)*30));color:var(--gold);-webkit-text-stroke:calc(var(--u)*1) #2a1404;paint-order:stroke fill;text-shadow:0 calc(var(--u)*2.5) 0 #2a1404}
+#ak .cinetitle small{font-weight:700;font-size:max(14px,calc(var(--u)*11));color:var(--bone);letter-spacing:3px;margin-top:calc(var(--u)*3)}
 #ak .dlg.top{bottom:auto;top:calc(var(--u)*5)}
 #ak #dlgPort{flex:none;width:calc(var(--u)*34);height:calc(var(--u)*34);border-radius:calc(var(--u)*2);border:calc(var(--u)*1) solid var(--frame);background:#0f0b18;object-fit:cover}
 #ak .dlg-body{flex:1;min-width:0;font-family:var(--pix)}
@@ -230,6 +238,8 @@ html,body{background:#0d0a14;height:100%}
         <div class="dlg-body"><b id="dlgName"></b><p id="dlgText"></p></div>
         <span class="dlg-more" aria-hidden="true">&#9660;</span>
       </div>
+      <video class="cinevid" id="cineVid" muted playsinline preload="auto" aria-label="Opening cinematic: The Theft of the Atlas"></video>
+      <div class="cinetitle" id="cineTitle"><b>ANATOMY KONG</b><small>THE LOST ATLAS</small></div>
       <div class="sub" id="sub" aria-live="polite"><b id="subName"></b><span id="subText"></span></div>
       <button class="skip" id="bSkip" hidden>Skip &#9656;&#9656;</button>
 
@@ -295,6 +305,7 @@ html,body{background:#0d0a14;height:100%}
 <script>
 "use strict";
 var ASSETS = /*__ASSETS__*/{};
+var CINE_TIMING = /*__CINE_TIMING__*/null;
 
 // The world runs in 16 px tiles on a 384x224 view; everything is drawn at RS x that
 // resolution, so art can carry half-pixel detail like the concept sprites.
@@ -1651,7 +1662,54 @@ async function cs(p){ await p; if (!CINE || CINE.skip) throw SKIP; }
 function wait(s){ return cs(after(s)); }
 function cineSpark(c, x, y, col, n, sp){ for (var i = 0; i < n; i++){ var a = Math.random() * 6.28, v = (sp || 40) * (.4 + Math.random()); c.fx.push({ x:x, y:y, vx:Math.cos(a) * v, vy:Math.sin(a) * v, life:.5 + Math.random() * .6, col:col }); } }
 async function footsteps(a){ while (CINE && !CINE.skip && (a.moving || a.tx !== null)){ SFX.play("step"); await after(.17); } }
+// The 3D cinematic (rendered in Blender, cinematic/anim) plays as a video. The game
+// keeps the subtitles, caption, sound effects and score, scheduled by the video's
+// currentTime from cinematic/anim/timing.json. Resolves "ended", "skipped" or "fail".
+var VIDC = null;
+function videoCutscene(){
+  return new Promise(function(res){
+    var v = $("cineVid"), T = CINE_TIMING, done = false, ci = 0, sub = $("sub");
+    function finish(r){
+      if (done) return; done = true; VIDC = null;
+      v.pause(); v.classList.remove("on"); sub.classList.remove("on", "cap"); $("bSkip").hidden = true; MUS.drone(false);
+      if (r !== "ended"){ res(r); return; }
+      var tc = $("cineTitle"); tc.classList.add("on"); void tc.offsetWidth; tc.classList.add("show");
+      setTimeout(function(){ tc.classList.remove("show"); setTimeout(function(){ tc.classList.remove("on"); res(r); }, 800); }, 3400);
+    }
+    function cue(n){ if (n === "drone_on") MUS.drone(true); else if (n === "drone_off") MUS.drone(false); else if (n === "flourish") MUS.flourish(); else SFX.play(n); }
+    VIDC = { skip:function(){ finish("skipped"); } };
+    v.onerror = function(){ finish("fail"); };
+    v.onended = function(){ finish("ended"); };
+    v.src = ASSETS.cine_video;
+    S.mode = "video"; S.fade = S.fadeTo = 1; $("bSkip").hidden = false;
+    v.classList.add("on");
+    var pr = v.play(); if (pr && pr.catch) pr.catch(function(){ finish("fail"); });
+    (function tick(){
+      if (done) return;
+      var ct = v.currentTime, L = null, C = null;
+      while (ci < T.cues.length && T.cues[ci].t <= ct){ cue(T.cues[ci].sfx); ci++; }
+      T.lines.forEach(function(l){ if (ct >= l.t0 && ct <= l.t1 + .35) L = l; });
+      T.captions.forEach(function(c2){ if (ct >= c2.t0 && ct <= c2.t1) C = c2; });
+      if (L){
+        var w = WHO[L.who], n = Math.min(L.text.length, Math.floor((ct - L.t0) * 48));
+        $("subName").textContent = w.name; $("subName").style.color = w.col; $("subText").textContent = L.text.slice(0, n);
+        sub.classList.add("on"); sub.classList.remove("cap");
+        if (sub._said !== L){ sub._said = L; say_live(w.name + ": " + L.text); }
+      } else if (C){
+        $("subName").textContent = ""; $("subText").textContent = C.text; sub.classList.add("on", "cap");
+      } else sub.classList.remove("on", "cap");
+      requestAnimationFrame(tick);
+    })();
+  });
+}
 async function introCutscene(){
+  if (ASSETS.cine_video && CINE_TIMING){
+    var r = await videoCutscene();
+    if (r !== "fail"){ S.seenIntro = true; return r === "skipped"; }
+  }
+  return codeCutscene();
+}
+async function codeCutscene(){
   cineInit(); var c = CINE, doc = c.doc, hero = c.hero;
   S.mode = "cut"; $("bSkip").hidden = false;
   try {
@@ -1773,6 +1831,7 @@ async function introCutscene(){
   return skipped;
 }
 function skipCut(){
+  if (VIDC){ SFX.play("select"); VIDC.skip(); return; }
   if (!CINE || CINE.skip) return;
   CINE.skip = true; SFX.play("select"); MUS.drone(false);
   if (S.dlg){ var d = S.dlg; S.dlg = null; $("dlg").classList.remove("on"); $("sub").classList.remove("on"); d.res(); }
@@ -2068,7 +2127,7 @@ $("tStart").onclick = startGame;
 $("bSkip").onclick = skipCut;
 $("eAgain").onclick = startGame;
 $("eTitle").onclick = showTitle;
-$("bMenu").onclick = function(){ if (S.mode === "quiz" || S.dlg || CINE) return; showTitle(); };
+$("bMenu").onclick = function(){ if (S.mode === "quiz" || S.dlg || CINE || VIDC) return; showTitle(); };
 
 /* ======================================================================
    INPUT
@@ -2083,7 +2142,7 @@ document.addEventListener("keydown", function(e){
     if ((k === "Enter" || k === " ") && QZ && QZ.done && tag !== "BUTTON"){ closeQuiz(); e.preventDefault(); }
     return;
   }
-  if (CINE && k === "Escape"){ skipCut(); e.preventDefault(); return; }
+  if ((CINE || VIDC) && k === "Escape"){ skipCut(); e.preventDefault(); return; }
   if (S.mode === "title" && (k === "Enter" || k === " ") && tag !== "BUTTON"){ startGame(); e.preventDefault(); return; }
   if (S.dlg && (k === "Enter" || k === " " || k === "z" || k === "Z")){ dlgAdvance(); e.preventDefault(); return; }
   var a = KMAP[k];

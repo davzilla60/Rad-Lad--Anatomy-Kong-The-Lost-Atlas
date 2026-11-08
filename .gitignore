@@ -1,2 +1,8 @@
 __pycache__/
 _preview.html
+*.blend1
+*.blend
+cinematic/anim/frames/
+cinematic/anim/stills/
+cinematic/anim/render.log
+cinematic/anim/*_1080p.mp4

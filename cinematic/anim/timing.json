@@ -1,0 +1,377 @@
+{
+ "fps": 12,
+ "length": 135.0,
+ "lines": [
+  {
+   "t0": 24.0,
+   "t1": 27.0,
+   "who": "doc",
+   "text": "At last... the Atlas of Anatomy."
+  },
+  {
+   "t0": 30.6,
+   "t1": 34.4,
+   "who": "doc",
+   "text": "Centuries of knowledge... and they kept it locked away in a basement."
+  },
+  {
+   "t0": 36.0,
+   "t1": 38.0,
+   "who": "doc",
+   "text": "How terribly unimaginative."
+  },
+  {
+   "t0": 41.4,
+   "t1": 43.4,
+   "who": "hero",
+   "text": "Stop! Put that book back!"
+  },
+  {
+   "t0": 45.2,
+   "t1": 47.6,
+   "who": "doc",
+   "text": "Oh, I'm afraid you're a little late."
+  },
+  {
+   "t0": 47.9,
+   "t1": 51.2,
+   "who": "doc",
+   "text": "Although, I must admit... I'm impressed you made it this far."
+  },
+  {
+   "t0": 51.5,
+   "t1": 55.0,
+   "who": "doc",
+   "text": "Unfortunately, our little tour of the vault has reached its conclusion."
+  },
+  {
+   "t0": 60.0,
+   "t1": 61.8,
+   "who": "hero",
+   "text": "What are you doing?!"
+  },
+  {
+   "t0": 62.2,
+   "t1": 64.8,
+   "who": "doc",
+   "text": "Oh, merely reorganising the curriculum!"
+  },
+  {
+   "t0": 77.0,
+   "t1": 80.8,
+   "who": "doc",
+   "text": "And there we have it. A rather comprehensive redistribution of anatomical knowledge."
+  },
+  {
+   "t0": 81.1,
+   "t1": 83.4,
+   "who": "doc",
+   "text": "The pages are now scattered across Anatomia."
+  },
+  {
+   "t0": 83.7,
+   "t1": 86.4,
+   "who": "doc",
+   "text": "Of course, I haven't left them entirely unattended."
+  },
+  {
+   "t0": 86.8,
+   "t1": 89.8,
+   "who": "doc",
+   "text": "Each of my lieutenants has been entrusted with a collection of pages."
+  },
+  {
+   "t0": 90.0,
+   "t1": 95.0,
+   "who": "doc",
+   "text": "The bones, the muscles, the vessels, the brain... and all those wonderfully complicated organs."
+  },
+  {
+   "t0": 96.4,
+   "t1": 98.4,
+   "who": "doc",
+   "text": "So, if you wish to reclaim the Atlas..."
+  },
+  {
+   "t0": 98.6,
+   "t1": 100.4,
+   "who": "doc",
+   "text": "You'll have to find my lieutenants..."
+  },
+  {
+   "t0": 100.7,
+   "t1": 103.0,
+   "who": "doc",
+   "text": "...and defeat every last one of them."
+  },
+  {
+   "t0": 103.6,
+   "t1": 105.5,
+   "who": "hero",
+   "text": "You're not getting away with this!"
+  },
+  {
+   "t0": 107.0,
+   "t1": 108.9,
+   "who": "doc",
+   "text": "My dear radiographer..."
+  },
+  {
+   "t0": 109.1,
+   "t1": 111.4,
+   "who": "doc",
+   "text": "You spend your days looking inside people."
+  },
+  {
+   "t0": 111.6,
+   "t1": 114.4,
+   "who": "doc",
+   "text": "Let's see how well you actually know what's in there."
+  },
+  {
+   "t0": 114.7,
+   "t1": 118.9,
+   "who": "doc",
+   "text": "Oh, and do try not to break anything. The skeleton is rather difficult to put back together."
+  },
+  {
+   "t0": 128.6,
+   "t1": 131.4,
+   "who": "hero",
+   "text": "Well... this is going to be a long shift."
+  }
+ ],
+ "captions": [
+  {
+   "t0": 15.2,
+   "t1": 18.0,
+   "text": "Dr Dissection has arrived."
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sfx": "drone_on"
+  },
+  {
+   "t": 9.7,
+   "sfx": "clank"
+  },
+  {
+   "t": 10.1,
+   "sfx": "clank"
+  },
+  {
+   "t": 10.5,
+   "sfx": "clank"
+  },
+  {
+   "t": 10.9,
+   "sfx": "clank"
+  },
+  {
+   "t": 11.3,
+   "sfx": "clank"
+  },
+  {
+   "t": 11.7,
+   "sfx": "clank"
+  },
+  {
+   "t": 12.0,
+   "sfx": "grind"
+  },
+  {
+   "t": 12.0,
+   "sfx": "rumble"
+  },
+  {
+   "t": 27.6,
+   "sfx": "magic"
+  },
+  {
+   "t": 29.3,
+   "sfx": "pulse"
+  },
+  {
+   "t": 38.0,
+   "sfx": "step"
+  },
+  {
+   "t": 38.17,
+   "sfx": "step"
+  },
+  {
+   "t": 38.34,
+   "sfx": "step"
+  },
+  {
+   "t": 38.51,
+   "sfx": "step"
+  },
+  {
+   "t": 38.68,
+   "sfx": "step"
+  },
+  {
+   "t": 38.85,
+   "sfx": "step"
+  },
+  {
+   "t": 39.02,
+   "sfx": "step"
+  },
+  {
+   "t": 39.19,
+   "sfx": "step"
+  },
+  {
+   "t": 39.36,
+   "sfx": "step"
+  },
+  {
+   "t": 39.53,
+   "sfx": "step"
+  },
+  {
+   "t": 39.7,
+   "sfx": "step"
+  },
+  {
+   "t": 39.87,
+   "sfx": "step"
+  },
+  {
+   "t": 40.04,
+   "sfx": "step"
+  },
+  {
+   "t": 40.21,
+   "sfx": "step"
+  },
+  {
+   "t": 40.38,
+   "sfx": "step"
+  },
+  {
+   "t": 40.55,
+   "sfx": "step"
+  },
+  {
+   "t": 40.72,
+   "sfx": "step"
+  },
+  {
+   "t": 40.89,
+   "sfx": "step"
+  },
+  {
+   "t": 55.2,
+   "sfx": "magic"
+  },
+  {
+   "t": 57.0,
+   "sfx": "wind"
+  },
+  {
+   "t": 65.0,
+   "sfx": "burst"
+  },
+  {
+   "t": 67.2,
+   "sfx": "wind"
+  },
+  {
+   "t": 75.4,
+   "sfx": "dust"
+  },
+  {
+   "t": 90.3,
+   "sfx": "cp"
+  },
+  {
+   "t": 91.1,
+   "sfx": "cp"
+  },
+  {
+   "t": 91.9,
+   "sfx": "cp"
+  },
+  {
+   "t": 92.7,
+   "sfx": "cp"
+  },
+  {
+   "t": 94.1,
+   "sfx": "cp"
+  },
+  {
+   "t": 103.0,
+   "sfx": "portal"
+  },
+  {
+   "t": 105.6,
+   "sfx": "laugh"
+  },
+  {
+   "t": 119.2,
+   "sfx": "implode"
+  },
+  {
+   "t": 120.0,
+   "sfx": "drone_off"
+  },
+  {
+   "t": 121.6,
+   "sfx": "step"
+  },
+  {
+   "t": 121.89999999999999,
+   "sfx": "step"
+  },
+  {
+   "t": 122.19999999999999,
+   "sfx": "step"
+  },
+  {
+   "t": 122.5,
+   "sfx": "step"
+  },
+  {
+   "t": 122.8,
+   "sfx": "step"
+  },
+  {
+   "t": 123.1,
+   "sfx": "step"
+  },
+  {
+   "t": 123.39999999999999,
+   "sfx": "step"
+  },
+  {
+   "t": 123.69999999999999,
+   "sfx": "step"
+  },
+  {
+   "t": 124.0,
+   "sfx": "step"
+  },
+  {
+   "t": 124.3,
+   "sfx": "step"
+  },
+  {
+   "t": 124.6,
+   "sfx": "flutter"
+  },
+  {
+   "t": 126.6,
+   "sfx": "page"
+  },
+  {
+   "t": 133.4,
+   "sfx": "flourish"
+  }
+ ]
+}
